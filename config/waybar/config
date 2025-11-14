@@ -38,7 +38,7 @@
     "custom/gpu",
     "custom/gpu-temp",
     "custom/separator",
-    "network",
+    "custom/network",
     "custom/separator",
     "backlight",
     "custom/separator",
@@ -127,7 +127,16 @@
     "tooltip-format-connected": "{device_enumerate}"
   },
 
-"network": {
+  "custom/network": {
+    "exec": "~/Scripts/network-display.sh",
+    "return-type": "json",
+    "interval": 2,
+    "on-click": "kitty iwctl",
+    "on-click-right": "~/Scripts/network-cycle.sh",
+    "tooltip": true
+  },
+
+  "network-old": {
     "format-wifi": "󰖩   {essid} ({signalStrength}%)",
     "format-ethernet": "󰈀 {ipaddr}/{cidr}",
     "format-disconnected": "󰖪  Disconnected",
