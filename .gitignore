@@ -1,0 +1,14 @@
+# Sensitive credentials
+config/gnome-online-accounts/
+config/evolution/
+config/keyring/
+config/gnome-keyring/
+
+# Cache and logs
+**/*cache*/
+**/*.log
+**/*.lock
+
+# Session files
+config/fish/fish_variables
+config/dconf/
