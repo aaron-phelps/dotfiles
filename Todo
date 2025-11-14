@@ -1,6 +1,14 @@
+fix keybinds
+add emojiis for discord
 fix rofi app menu
 fix screenshot rofi menu
 fix theme for steam right click tray
 fix theme for thundar
+fix theme for bluetooth right click tray
+fix theme for bluetooth manager
+fix theme for calendar
 fix waybar for screenshots/recordings
 fix waybar for monitor update
+fix fish config
+fix waybar tool tip wifi add description for right click cmd
+fix waybar right click wifi to cycle through down/up vs signal vs ip etc
