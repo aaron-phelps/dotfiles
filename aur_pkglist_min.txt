@@ -1,0 +1,4 @@
+ttf-google-sans-code-nf
+yay
+yay-debug
+zen-browser-bin
