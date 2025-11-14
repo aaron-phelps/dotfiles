@@ -58,9 +58,11 @@ Use zeditor/thunar or cp command in terminal to move files/folders as needed
 
 ## 4. Pacman and/or Yay installed pkgs to a txt file
 
-pacman -Qqen > pkglist.txt
+cd ~/dotfiles
 
-yay -Qeq --foreign > aur_pkglist.txt
+pacman -Qqen > pkglist_min.txt
+
+yay -Qeq --foreign > aur_pkglist_min.txt
 
 ## 5. Git + Zeditor Setup on Arch Linux
 
