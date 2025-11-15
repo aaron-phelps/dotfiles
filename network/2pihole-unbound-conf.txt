@@ -1,0 +1,453 @@
+# Configure Unbound with Pi-hole for Recursive DNS
+
+## Overview
+Unbound is a validating, recursive, caching DNS resolver. When combined with Pi-hole, it allows you to be your own DNS resolver instead of relying on third-party DNS providers (Google, Cloudflare, etc.), enhancing privacy and reducing dependency on external DNS services.
+
+## What is Recursive DNS?
+
+**Traditional Setup (Without Unbound):**
+```
+Your Device → Pi-hole → Google/Cloudflare DNS → Authoritative DNS Servers
+```
+
+**With Unbound:**
+```
+Your Device → Pi-hole → Unbound → Authoritative DNS Servers (directly)
+```
+
+**Benefits:**
+- **Enhanced Privacy:** No third-party DNS provider sees your queries
+- **Reduced Latency:** Caching reduces repeated lookups
+- **DNSSEC Validation:** Cryptographic verification of DNS responses
+- **No Logging:** You control all aspects of DNS resolution
+- **Resilience:** No dependency on external DNS providers
+
+## Prerequisites
+- Pi-hole installed and working
+- Raspberry Pi or Linux system running Pi-hole
+- Root/sudo access
+- Basic understanding of DNS
+
+## Installation Steps
+
+### Step 1: Install Unbound
+```bash
+# Update package list
+sudo apt update
+
+# Install Unbound
+sudo apt install unbound -y
+```
+
+### Step 2: Check Unbound Version
+```bash
+unbound -V
+```
+
+### Step 3: Download Root Hints File
+The root hints file contains addresses of root DNS servers.
+```bash
+# Download root hints
+sudo wget -O /var/lib/unbound/root.hints https://www.internic.net/domain/named.root
+
+# Set proper permissions
+sudo chown unbound:unbound /var/lib/unbound/root.hints
+```
+
+**Optional:** Set up automatic monthly updates via cron:
+```bash
+# Edit root crontab
+sudo crontab -e
+
+# Add this line to update root hints monthly
+0 0 1 * * wget -O /var/lib/unbound/root.hints https://www.internic.net/domain/named.root
+```
+
+### Step 4: Create Unbound Configuration
+```bash
+# Backup existing config (if any)
+sudo mv /etc/unbound/unbound.conf /etc/unbound/unbound.conf.bak
+
+# Create new config file
+sudo nano /etc/unbound/unbound.conf.d/pi-hole.conf
+```
+
+**Add the following configuration:**
+```yaml
+server:
+    # Listen on all interfaces, port 5335 (non-standard to avoid conflicts)
+    interface: 127.0.0.1
+    port: 5335
+
+    # If no logfile is specified, syslog is used
+    # logfile: "/var/log/unbound/unbound.log"
+    verbosity: 0
+
+    # Respond to DNS requests on localhost only
+    do-ip4: yes
+    do-udp: yes
+    do-tcp: yes
+
+    # May be set to yes if you have IPv6 connectivity
+    do-ip6: no
+
+    # You want to leave this to no unless you have *native* IPv6. With 6to4 and
+    # Terredo tunnels your web browser should favor IPv4 for the same reasons
+    prefer-ip6: no
+
+    # Use this only when you downloaded the list of primary root servers!
+    # If you use the default dns-root-data package, unbound will find it automatically
+    root-hints: "/var/lib/unbound/root.hints"
+
+    # Trust glue only if it is within the server's authority
+    harden-glue: yes
+
+    # Require DNSSEC data for trust-anchored zones, if such data is absent, the zone becomes BOGUS
+    harden-dnssec-stripped: yes
+
+    # Don't use Capitalization randomization as it known to cause DNSSEC issues sometimes
+    # see https://discourse.pi-hole.net/t/unbound-stubby-or-dnscrypt-proxy/9378 for further details
+    use-caps-for-id: no
+
+    # Reduce EDNS reassembly buffer size.
+    # IP fragmentation is unreliable on the Internet today, and can cause
+    # transmission failures when large DNS messages are sent via UDP. Even
+    # when fragmentation does work, it may not be secure; it is theoretically
+    # possible to spoof parts of a fragmented DNS message, without easy
+    # detection at the receiving end. Recently, there was an excellent study
+    # >>> Defragmenting DNS - Determining the optimal maximum UDP response size for DNS <
+    # by Axel Koolhaas, and Tjeerd Slokker (https://indico.dns-oarc.net/event/36/contributions/776/)
+    # in collaboration with NLnet Labs explored DNS using real world data from the
+    # the RIPE Atlas probes and the researchers suggested different values for
+    # IPv4 and IPv6 and in different scenarios. They advise that servers should
+    # be configured to limit DNS messages sent over UDP to a size that will not
+    # trigger fragmentation on typical network links. DNS servers can switch
+    # from UDP to TCP when a DNS response is too big to fit in this limited
+    # buffer size. This value has also been suggested in DNS Flag Day 2020.
+    edns-buffer-size: 1232
+
+    # Perform prefetching of close to expired message cache entries
+    # This only applies to domains that have been frequently queried
+    prefetch: yes
+
+    # One thread should be sufficient, can be increased on beefy machines. In reality for most users running on small networks or on a single machine, it should be unnecessary to seek performance enhancement by increasing num-threads above 1.
+    num-threads: 1
+
+    # Ensure kernel buffer is large enough to not lose messages in traffic spikes
+    so-rcvbuf: 1m
+
+    # Ensure privacy of local IP ranges
+    private-address: 192.168.0.0/16
+    private-address: 169.254.0.0/16
+    private-address: 172.16.0.0/12
+    private-address: 10.0.0.0/8
+    private-address: fd00::/8
+    private-address: fe80::/10
+```
+
+**Save and exit** (Ctrl+X, Y, Enter)
+
+### Step 5: Test Configuration Syntax
+```bash
+# Test Unbound configuration
+sudo unbound-checkconf
+```
+
+**Expected output:** `no errors in /etc/unbound/unbound.conf`
+
+### Step 6: Restart Unbound
+```bash
+# Restart Unbound service
+sudo systemctl restart unbound
+
+# Enable Unbound to start on boot
+sudo systemctl enable unbound
+
+# Check status
+sudo systemctl status unbound
+```
+
+**Expected status:** `active (running)`
+
+### Step 7: Test Unbound Resolution
+```bash
+# Test DNS resolution via Unbound
+dig google.com @127.0.0.1 -p 5335
+
+# Or using nslookup
+nslookup google.com 127.0.0.1 -port=5335
+```
+
+**Expected:** You should get a valid DNS response showing IP addresses for google.com
+
+### Step 8: Configure Pi-hole to Use Unbound
+
+1. Open Pi-hole web interface: `http://pi.hole/admin`
+2. Navigate to **Settings** → **DNS**
+3. **Uncheck all upstream DNS servers** (Google, Cloudflare, etc.)
+4. In **Custom 1 (IPv4)**, enter: `127.0.0.1#5335`
+5. **Check** "Use Conditional Forwarding" if on local network (optional)
+6. Scroll down and click **Save**
+
+**Alternative: Using Command Line**
+```bash
+# Edit Pi-hole DNS config
+sudo nano /etc/dnsmasq.d/01-pihole.conf
+
+# Find the server= lines and replace with:
+server=127.0.0.1#5335
+
+# Restart Pi-hole DNS
+pihole restartdns
+```
+
+## Verification
+
+### Step 1: Check Pi-hole is Using Unbound
+```bash
+# Query via Pi-hole
+dig google.com @127.0.0.1
+
+# Check Pi-hole query log
+pihole -t
+```
+
+### Step 2: Verify Recursive Resolution
+Open Pi-hole web interface:
+1. Go to **Tools** → **Query Log**
+2. Search for a domain you just queried
+3. Click on the query
+4. **Reply** should show it came from `127.0.0.1#5335` (Unbound)
+
+### Step 3: Test DNSSEC Validation
+```bash
+# This domain is intentionally broken for DNSSEC testing
+dig dnssec-failed.org @127.0.0.1
+
+# Should return SERVFAIL - this is correct behavior
+```
+```bash
+# This domain should work with DNSSEC
+dig sigok.verteiltesysteme.net @127.0.0.1
+
+# Should return NOERROR and valid IP addresses
+```
+
+### Step 4: Check Unbound Statistics
+```bash
+# View Unbound stats
+sudo unbound-control stats_noreset
+```
+
+## Performance Tuning (Optional)
+
+### Increase Cache Size for Better Performance
+Edit `/etc/unbound/unbound.conf.d/pi-hole.conf`:
+```yaml
+server:
+    # ... existing config ...
+
+    # Increase cache size (adjust based on available RAM)
+    msg-cache-size: 128m
+    rrset-cache-size: 256m
+
+    # Increase cache lifetime
+    cache-min-ttl: 3600
+    cache-max-ttl: 86400
+
+    # Increase number of queries to prefetch
+    prefetch-key: yes
+```
+
+Restart Unbound:
+```bash
+sudo systemctl restart unbound
+```
+
+### Enable Query Logging (for debugging)
+Edit `/etc/unbound/unbound.conf.d/pi-hole.conf`:
+```yaml
+server:
+    # ... existing config ...
+
+    # Enable logging
+    verbosity: 1
+    log-queries: yes
+    logfile: "/var/log/unbound/unbound.log"
+```
+
+Create log directory:
+```bash
+sudo mkdir -p /var/log/unbound
+sudo chown unbound:unbound /var/log/unbound
+sudo systemctl restart unbound
+```
+
+View logs:
+```bash
+sudo tail -f /var/log/unbound/unbound.log
+```
+
+## Troubleshooting
+
+### Unbound won't start
+**Check for port conflicts:**
+```bash
+# Check what's using port 53
+sudo netstat -tulpn | grep :53
+
+# Or using ss
+sudo ss -tulpn | grep :53
+```
+
+**Solution:** Unbound should use port 5335, not 53. Pi-hole uses 53.
+
+### DNS resolution not working
+```bash
+# Check Unbound status
+sudo systemctl status unbound
+
+# Check Unbound logs
+sudo journalctl -u unbound -f
+
+# Test Unbound directly
+dig google.com @127.0.0.1 -p 5335
+```
+
+### Pi-hole not forwarding to Unbound
+```bash
+# Check Pi-hole DNS settings
+cat /etc/dnsmasq.d/01-pihole.conf | grep server
+
+# Should show: server=127.0.0.1#5335
+
+# Restart Pi-hole
+pihole restartdns
+```
+
+### Slow DNS resolution
+```bash
+# Check Unbound cache stats
+sudo unbound-control stats_noreset | grep cache
+
+# Increase cache sizes in config (see Performance Tuning section)
+```
+
+### DNSSEC validation errors
+```bash
+# Check if DNSSEC is working
+dig sigfail.verteiltesysteme.net @127.0.0.1
+
+# Should return SERVFAIL (this is correct)
+
+# If all queries fail, check root hints
+sudo wget -O /var/lib/unbound/root.hints https://www.internic.net/domain/named.root
+sudo systemctl restart unbound
+```
+
+### Check Unbound Configuration
+```bash
+# Validate config
+sudo unbound-checkconf
+
+# Check for syntax errors
+sudo unbound-checkconf /etc/unbound/unbound.conf.d/pi-hole.conf
+```
+
+## Maintenance
+
+### Update Root Hints (Monthly)
+```bash
+sudo wget -O /var/lib/unbound/root.hints https://www.internic.net/domain/named.root
+sudo systemctl restart unbound
+```
+
+### Monitor Unbound Performance
+```bash
+# Real-time stats
+watch -n 1 'sudo unbound-control stats_noreset'
+
+# Check memory usage
+sudo systemctl status unbound
+```
+
+### Backup Configuration
+```bash
+# Backup Unbound config
+sudo cp /etc/unbound/unbound.conf.d/pi-hole.conf ~/unbound-backup.conf
+
+# Backup Pi-hole config
+pihole -a -t
+```
+
+## Advanced Configuration
+
+### Enable DNS over TLS (DoT) for Upstream Queries
+If you want Unbound to use DoT when querying authoritative servers:
+```yaml
+server:
+    # ... existing config ...
+
+    # Enable TLS for upstream queries
+    tls-cert-bundle: "/etc/ssl/certs/ca-certificates.crt"
+
+forward-zone:
+    name: "."
+    forward-tls-upstream: yes
+    forward-addr: 1.1.1.1@853#cloudflare-dns.com
+    forward-addr: 1.0.0.1@853#cloudflare-dns.com
+```
+
+**Note:** This defeats the purpose of true recursive DNS but adds encryption to upstream queries.
+
+### Local Zone Configuration
+Define local DNS records:
+```yaml
+server:
+    # ... existing config ...
+
+    # Define local zones
+    local-zone: "home.lan." static
+    local-data: "server.home.lan. IN A 192.168.50.100"
+    local-data: "nas.home.lan. IN A 192.168.50.101"
+```
+
+## Comparison: Recursive vs. Forwarding DNS
+
+| Feature | Recursive (Unbound) | Forwarding (Google/Cloudflare) |
+|---------|---------------------|--------------------------------|
+| Privacy | ✅ Complete | ❌ Provider sees all queries |
+| Speed (initial) | ⚠️ Slower (must trace from root) | ✅ Fast (cached) |
+| Speed (cached) | ✅ Fast | ✅ Fast |
+| DNSSEC | ✅ Full validation | ⚠️ Trusts provider |
+| Dependency | ✅ None | ❌ Requires external service |
+| Complexity | ⚠️ More setup | ✅ Simple |
+| Best for | Privacy-focused users | Ease of use |
+
+## Best Practices
+
+1. **Keep root hints updated** - Set up monthly cron job
+2. **Monitor Unbound logs** - Watch for errors or validation failures
+3. **Don't mix recursive and forwarding** - Choose one approach
+4. **Enable DNSSEC** - Already enabled in config above
+5. **Tune cache sizes** - Based on your network's query volume
+6. **Set static IP for Pi-hole** - Prevents DNS failures if IP changes
+7. **Monitor system resources** - Ensure Pi has enough RAM for caching
+
+## Resources
+- [Unbound Documentation](https://nlnetlabs.nl/documentation/unbound/)
+- [Pi-hole Unbound Guide](https://docs.pi-hole.net/guides/dns/unbound/)
+- [DNSSEC Testing](https://dnssec-analyzer.verisignlabs.com/)
+- [DNS Root Servers](https://root-servers.org/)
+
+## Summary
+
+After completing this setup:
+- Your devices query **Pi-hole** (port 53)
+- Pi-hole forwards to **Unbound** (port 5335)
+- Unbound performs **recursive resolution** directly to authoritative DNS servers
+- No external DNS providers see your queries
+- DNSSEC validates all responses
+- Everything is cached for fast subsequent lookups
+
+This setup gives you maximum privacy and control over your DNS infrastructure.

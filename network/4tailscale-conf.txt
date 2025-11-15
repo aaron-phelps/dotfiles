@@ -1,0 +1,569 @@
+# Configure Tailscale for Remote Pi-hole Access
+
+## Overview
+Tailscale is a zero-configuration VPN built on WireGuard that creates a secure mesh network between your devices. When combined with Pi-hole, it allows you to use your Pi-hole DNS server and ad blocking from anywhere in the world, even when not on your home network.
+
+## What is Tailscale?
+
+**Traditional VPN:**
+- Complex server setup
+- Manual configuration
+- Often slow
+- Single server bottleneck
+
+**Tailscale:**
+- Zero-config mesh network
+- Peer-to-peer connections when possible
+- Built on WireGuard (modern, fast, secure)
+- Cross-platform (Linux, Windows, macOS, iOS, Android)
+- Free for personal use (up to 100 devices)
+
+## Use Cases with Pi-hole
+
+1. **Remote Ad Blocking:** Use Pi-hole DNS when traveling or on mobile networks
+2. **Secure DNS:** Encrypted DNS queries even on untrusted networks
+3. **Access Home Network:** Reach other devices on your home network securely
+4. **Multiple Locations:** Connect Pi-holes across different locations
+
+## Prerequisites
+- Pi-hole installed and working
+- Raspberry Pi or Linux system running Pi-hole
+- Tailscale account (free at https://tailscale.com)
+- Root/sudo access
+
+## Installation Steps
+
+### Step 1: Create Tailscale Account
+1. Visit https://tailscale.com
+2. Click **Get Started** or **Sign Up**
+3. Sign up using:
+   - Google account
+   - GitHub account
+   - Microsoft account
+   - Email (SSO)
+4. Complete registration
+
+### Step 2: Install Tailscale on Pi-hole Device
+
+**For Raspberry Pi / Debian / Ubuntu:**
+```bash
+# Download and run Tailscale installer
+curl -fsSL https://tailscale.com/install.sh | sh
+
+# Alternatively, manual installation:
+curl -fsSL https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
+curl -fsSL https://pkgs.tailscale.com/stable/debian/bookworm.tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
+sudo apt update
+sudo apt install tailscale -y
+```
+
+**For Arch Linux:**
+```bash
+sudo pacman -S tailscale
+```
+
+### Step 3: Start Tailscale on Pi-hole
+```bash
+# Start and enable Tailscale
+sudo systemctl enable --now tailscaled
+
+# Authenticate and connect to your Tailscale network
+sudo tailscale up
+```
+
+**You'll see output like:**
+```
+To authenticate, visit:
+  https://login.tailscale.com/a/xxxxxxxxxxxx
+```
+
+1. Copy the URL and open it in a browser
+2. Log in with the same account you created earlier
+3. Authorize the device
+4. Return to terminal - should show "Success"
+
+### Step 4: Get Tailscale IP Address
+```bash
+# Check Tailscale status and IP
+tailscale ip -4
+
+# Should show something like: 100.x.x.x
+```
+
+**Note this IP** - this is your Pi-hole's Tailscale IP address.
+
+### Step 5: Enable IP Forwarding (Important for Exit Node - Optional)
+```bash
+# Edit sysctl configuration
+echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf
+echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf
+
+# Apply changes
+sudo sysctl -p /etc/sysctl.d/99-tailscale.conf
+```
+
+### Step 6: Advertise as Exit Node (Optional but Recommended)
+This allows you to route all traffic through your Pi-hole when away from home.
+```bash
+# Advertise this device as an exit node
+sudo tailscale up --advertise-exit-node --advertise-routes=192.168.50.0/24
+```
+
+**Note:** Replace `192.168.50.0/24` with your home network subnet.
+
+**Then approve in Tailscale admin console:**
+1. Visit https://login.tailscale.com/admin/machines
+2. Find your Pi-hole device
+3. Click the **⋮** (three dots)
+4. Click **Edit route settings**
+5. Enable **Use as exit node**
+6. Click **Save**
+
+### Step 7: Disable Key Expiry (Optional but Recommended)
+By default, Tailscale keys expire after 180 days.
+
+1. Visit https://login.tailscale.com/admin/machines
+2. Find your Pi-hole device
+3. Click the **⋮** (three dots)
+4. Click **Disable key expiry**
+5. Confirm
+
+## Configure Tailscale DNS Settings
+
+### Option 1: Global DNS (Recommended for Most Users)
+
+This makes ALL devices on your Tailscale network use Pi-hole by default.
+
+1. Visit https://login.tailscale.com/admin/dns
+2. Under **Nameservers**, click **Add nameserver**
+3. Select **Custom...**
+4. Enter your Pi-hole's Tailscale IP: `100.x.x.x`
+5. Click **Save**
+6. **Disable** "Override local DNS" (or enable if you want to force it)
+
+### Option 2: Per-Device DNS
+
+Configure DNS per device in client settings (see Client Installation section below).
+
+## Client Installation
+
+### Linux (Arch, Ubuntu, Debian, etc.)
+
+**Arch Linux:**
+```bash
+# Install Tailscale
+sudo pacman -S tailscale
+
+# Start and enable
+sudo systemctl enable --now tailscaled
+
+# Connect
+sudo tailscale up
+
+# Verify connection
+tailscale status
+```
+
+**Ubuntu/Debian:**
+```bash
+# Install
+curl -fsSL https://tailscale.com/install.sh | sh
+
+# Connect
+sudo tailscale up
+
+# Verify
+tailscale status
+```
+
+**Set DNS to Pi-hole:**
+```bash
+# Use Pi-hole via Tailscale
+sudo tailscale up --accept-dns=true
+
+# Or specify DNS manually
+sudo tailscale up --accept-dns=false
+# Then configure system DNS to 100.x.x.x (Pi-hole Tailscale IP)
+```
+
+### Windows
+
+1. Download Tailscale from https://tailscale.com/download/windows
+2. Run installer
+3. Click **Sign in**
+4. Authorize in browser
+5. **Use as exit node (optional):**
+   - Click Tailscale tray icon
+   - Click **⋮** → **Use exit node**
+   - Select your Pi-hole device
+6. **Set DNS:**
+   - Click Tailscale tray icon
+   - Click **⋮** → **Preferences**
+   - Under DNS, ensure **Use Tailscale DNS settings** is enabled
+
+### macOS
+
+1. Download Tailscale from https://tailscale.com/download/mac
+2. Install and open
+3. Click **Sign in**
+4. Authorize in browser
+5. **Use as exit node (optional):**
+   - Click Tailscale menu bar icon
+   - Select **Exit Node** → Choose your Pi-hole device
+6. **Set DNS:**
+   - Automatically uses Tailscale DNS settings if configured globally
+
+### iOS (iPhone/iPad)
+
+1. Download **Tailscale** from App Store
+2. Open app and tap **Sign in**
+3. Authorize in browser
+4. **Use as exit node (optional):**
+   - Tap your profile icon
+   - Tap **Exit Node**
+   - Select your Pi-hole device
+5. **DNS is automatic** if configured globally
+
+### Android
+
+1. Download **Tailscale** from Google Play Store
+2. Open app and tap **Sign in**
+3. Authorize in browser
+4. **Use as exit node (optional):**
+   - Tap **⋮** → **Use exit node**
+   - Select your Pi-hole device
+5. **DNS is automatic** if configured globally
+
+## Verification
+
+### Step 1: Check Tailscale Connection
+```bash
+# On any device with Tailscale
+tailscale status
+
+# Should show all connected devices including Pi-hole
+```
+
+### Step 2: Test DNS Resolution via Tailscale
+```bash
+# Test Pi-hole DNS via Tailscale IP
+dig google.com @100.x.x.x
+
+# Or using nslookup
+nslookup google.com 100.x.x.x
+```
+
+### Step 3: Verify Ad Blocking is Working
+**Visit test sites:**
+- http://canyoublockit.com/
+- https://d3ward.github.io/toolz/adblock.html
+
+Should show high blocking rates.
+
+### Step 4: Check Pi-hole Query Log
+1. Open Pi-hole admin: `http://100.x.x.x/admin` (using Tailscale IP)
+2. Navigate to **Tools** → **Query Log**
+3. You should see queries from your Tailscale devices
+4. Device names may show as Tailscale IPs (`100.x.x.x`)
+
+## Advanced Configuration
+
+### MagicDNS (Recommended)
+
+MagicDNS allows you to use device names instead of IP addresses.
+
+1. Visit https://login.tailscale.com/admin/dns
+2. Enable **MagicDNS**
+3. Your devices get names like: `pi-hole.tail-scale.ts.net`
+
+**Access Pi-hole using hostname:**
+```bash
+# Instead of http://100.x.x.x/admin
+# Use:
+http://pi-hole.tail-scale.ts.net/admin
+```
+
+### Split DNS
+
+Direct certain domains to specific DNS servers.
+
+1. Visit https://login.tailscale.com/admin/dns
+2. Under **Split DNS**, click **Add**
+3. Enter domain (e.g., `home.lan`)
+4. Select nameserver (your Pi-hole)
+5. Click **Save**
+
+### Subnet Routing
+
+Access devices on your home network via Tailscale.
+
+**On Pi-hole device:**
+```bash
+# Advertise home network subnet
+sudo tailscale up --advertise-routes=192.168.50.0/24
+```
+
+**Approve in admin console:**
+1. Visit https://login.tailscale.com/admin/machines
+2. Find your Pi-hole device
+3. Click **⋮** → **Edit route settings**
+4. Enable subnet routes
+5. Click **Save**
+
+**Now you can access home devices:**
+```bash
+# From anywhere, access home network devices
+ssh user@192.168.50.100  # Via Tailscale tunnel
+```
+
+### ACLs (Access Control Lists)
+
+Control which devices can access what.
+
+1. Visit https://login.tailscale.com/admin/acls
+2. Edit the JSON policy
+3. Example - allow all devices to access Pi-hole:
+```json
+{
+  "acls": [
+    {
+      "action": "accept",
+      "src": ["*"],
+      "dst": ["tag:pihole:53,5335,80,443"]
+    }
+  ],
+  "tagOwners": {
+    "tag:pihole": ["your-email@example.com"]
+  }
+}
+```
+
+4. Tag your Pi-hole device with `tag:pihole` in machine settings
+
+## Using Pi-hole Remotely
+
+### Scenario 1: Mobile Network
+1. Connect to Tailscale on your phone
+2. Enable **Use exit node** → Select Pi-hole
+3. All traffic now routes through home network
+4. Pi-hole blocks ads automatically
+
+### Scenario 2: Public WiFi (Coffee Shop, Airport)
+1. Connect to public WiFi
+2. Enable Tailscale
+3. Enable exit node (Pi-hole)
+4. Traffic is encrypted and routed through home
+5. DNS queries go through Pi-hole
+
+### Scenario 3: Work/School Network
+1. Connect to Tailscale
+2. DNS queries use Pi-hole via Tailscale
+3. Ad blocking works even on restricted networks
+
+## Troubleshooting
+
+### Can't connect to Tailscale
+```bash
+# Check Tailscale status
+sudo systemctl status tailscaled
+
+# Restart Tailscale
+sudo systemctl restart tailscaled
+
+# Check logs
+sudo journalctl -u tailscaled -f
+```
+
+### DNS not working via Tailscale
+```bash
+# Check if Pi-hole is accessible via Tailscale
+ping 100.x.x.x
+
+# Test DNS directly
+dig google.com @100.x.x.x
+
+# Check Tailscale DNS settings
+tailscale status --json | grep -A 5 DNS
+```
+
+### Pi-hole not blocking ads over Tailscale
+1. **Verify DNS is set correctly:**
+```bash
+   # Check current DNS
+   resolvectl status  # Linux
+   nslookup google.com  # Should show 100.x.x.x
+```
+
+2. **Check Pi-hole is receiving queries:**
+   - Open Pi-hole admin: `http://100.x.x.x/admin`
+   - Check **Tools** → **Query Log**
+
+3. **Ensure Tailscale DNS is accepted:**
+```bash
+   sudo tailscale up --accept-dns=true
+```
+
+### Exit node not working
+1. **Verify IP forwarding is enabled:**
+```bash
+   sysctl net.ipv4.ip_forward
+   # Should output: net.ipv4.ip_forward = 1
+```
+
+2. **Check exit node is approved:**
+   - Visit https://login.tailscale.com/admin/machines
+   - Verify exit node is enabled for Pi-hole device
+
+3. **Re-advertise exit node:**
+```bash
+   sudo tailscale up --advertise-exit-node --reset
+```
+
+### Slow performance over Tailscale
+1. **Check connection type:**
+```bash
+   tailscale status
+   # Look for "relay" vs "direct" connections
+   # Direct is faster
+```
+
+2. **Disable DERP relay (force direct):**
+   - May not always be possible due to NAT/firewall
+   - Check network allows UDP hole-punching
+
+3. **Use faster exit node:**
+   - If using exit node feature, ensure good internet connection on Pi-hole
+
+### Can't access Pi-hole web interface
+```bash
+# Test if port 80 is accessible via Tailscale
+curl http://100.x.x.x
+
+# Check Pi-hole is running
+pihole status
+
+# Check firewall isn't blocking (if enabled)
+sudo ufw status
+```
+
+## Security Best Practices
+
+1. **Use ACLs:** Restrict access to sensitive devices
+2. **Disable key expiry:** Prevent unexpected disconnections
+3. **Enable MagicDNS:** Easier device management
+4. **Regular updates:** Keep Tailscale updated
+```bash
+   sudo apt update && sudo apt upgrade tailscale
+```
+5. **Monitor connections:** Regularly check connected devices in admin console
+6. **Use tags:** Organize and manage devices with tags
+7. **Review audit logs:** https://login.tailscale.com/admin/audit
+
+## Performance Optimization
+
+### Reduce Latency
+```bash
+# Prefer direct connections over DERP relays
+# Ensure UDP ports 41641, 3478 are not blocked on networks
+```
+
+### Increase Bandwidth
+```bash
+# If using as exit node, ensure Pi has good internet connection
+# Consider upgrading internet speed if bottleneck
+```
+
+### Optimize for Mobile
+- **iOS/Android:** Disable exit node when not needed to save battery
+- Use **On-Demand Rules** (iOS) to auto-connect on untrusted WiFi
+
+## Maintenance
+
+### Update Tailscale
+```bash
+# Debian/Ubuntu/Raspberry Pi
+sudo apt update
+sudo apt upgrade tailscale
+
+# Arch Linux
+sudo pacman -Syu tailscale
+```
+
+### Check Tailscale Version
+```bash
+tailscale version
+```
+
+### Monitor Connected Devices
+```bash
+# List all devices
+tailscale status
+
+# Detailed info
+tailscale status --json
+```
+
+### Backup Configuration
+Tailscale configuration is cloud-based, but document:
+- Advertised routes
+- Exit node settings
+- ACL policies
+- DNS settings
+
+## Costs
+
+**Tailscale Pricing (as of 2024):**
+- **Personal (Free):**
+  - Up to 100 devices
+  - 3 users
+  - 1 admin
+  - Community support
+
+- **Premium ($6/user/month):**
+  - Unlimited devices
+  - Advanced ACLs
+  - Priority support
+
+For home use with Pi-hole, the **free tier is sufficient**.
+
+## Comparison: Tailscale vs Traditional VPN
+
+| Feature | Tailscale | Traditional VPN |
+|---------|-----------|-----------------|
+| Setup | ✅ Zero-config | ❌ Complex |
+| Speed | ✅ Peer-to-peer when possible | ⚠️ Server bottleneck |
+| Security | ✅ WireGuard | ⚠️ Varies |
+| Cross-platform | ✅ All platforms | ⚠️ Varies |
+| NAT traversal | ✅ Automatic | ❌ Manual/difficult |
+| Maintenance | ✅ Minimal | ❌ Regular updates |
+| Cost | ✅ Free (personal) | ⚠️ Often paid |
+| Privacy | ✅ Decentralized | ⚠️ Central server sees traffic |
+
+## Alternative: Tailscale + Exit Node for Full Network
+
+If you want **all devices** to use Pi-hole even without installing Tailscale client:
+
+1. Set up a Raspberry Pi as Tailscale exit node with subnet routing
+2. Configure router to use this Pi as gateway
+3. All home network traffic routes through Tailscale
+4. **Warning:** More complex, potential performance impact
+
+## Resources
+- [Tailscale Documentation](https://tailscale.com/kb/)
+- [Tailscale Download](https://tailscale.com/download)
+- [Tailscale Admin Console](https://login.tailscale.com/admin/)
+- [Pi-hole Documentation](https://docs.pi-hole.net/)
+- [WireGuard](https://www.wireguard.com/)
+
+## Summary
+
+After completing this setup:
+- **Tailscale mesh network** connects all your devices securely
+- **Pi-hole DNS** accessible from anywhere via Tailscale IP
+- **Ad blocking works** even when traveling or on mobile networks
+- **Encrypted tunnel** protects DNS queries on untrusted networks
+- **Exit node** (optional) routes all traffic through home network
+- **MagicDNS** provides friendly hostnames for devices
+- **Subnet routing** (optional) accesses entire home network remotely
+
+This setup combines the privacy and ad-blocking of Pi-hole with the convenience and security of Tailscale's mesh VPN.

@@ -1,0 +1,95 @@
+# Configure Arch Linux to Use Pi-hole DNS
+
+## Problem
+systemd-resolved was using fallback DNS (e.g., 8.8.8.8) instead of Pi-hole, bypassing ad blocking.
+
+## Solution
+
+### Step 1: Edit systemd-resolved configuration
+```bash
+sudo nano /etc/systemd/resolved.conf
+```
+
+### Step 2: Add/modify these lines
+```ini
+[Resolve]
+DNS=pi.hole
+FallbackDNS=
+Domains=~.
+DNSStubListener=no
+```
+
+**Note:** Replace `pi.hole` with your Pi-hole's hostname or IP address:
+- Hostname: `pi.hole`, `pi.local`, or your custom hostname
+- IP address: e.g., `192.168.1.100`
+
+**Save and exit** (Ctrl+X, Y, Enter)
+
+### Step 3: Restart systemd-resolved
+```bash
+sudo systemctl restart systemd-resolved
+```
+
+### Step 4: Fix resolv.conf symlink
+```bash
+sudo rm /etc/resolv.conf
+sudo ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
+```
+
+### Step 5: Verify DNS configuration
+```bash
+resolvectl status
+```
+
+**Expected output:**
+- Current DNS Server should show your Pi-hole hostname or IP
+- NOT 8.8.8.8, 1.1.1.1, or other public DNS servers
+
+### Step 6: Test DNS resolution
+```bash
+# Install dig if needed
+sudo pacman -S bind
+
+# Test regular domain
+dig google.com | grep SERVER
+# Should show: SERVER: <your-pihole-ip>#53(<your-pihole-hostname>)
+
+# Test known ad domain
+dig ads.google.com
+# Should return 0.0.0.0 if Pi-hole is blocking
+```
+
+### Step 7 (Optional): Verify blocking in Pi-hole
+- Open Pi-hole web interface: `http://pi.hole/admin`
+- Go to **Tools → Query Log**
+- Search for recent queries from your machine
+- Blocked domains should show in red
+
+## Router Configuration
+Ensure your router's DHCP settings are configured correctly:
+- **Primary DNS:** Pi-hole IP address
+- **Secondary DNS:** Leave blank or set to Pi-hole IP (do NOT use 8.8.8.8, 1.1.1.1, etc.)
+- Setting a secondary DNS will allow devices to bypass Pi-hole
+
+## Troubleshooting
+
+### Check what DNS you're currently using:
+```bash
+resolvectl status | grep "Current DNS Server"
+```
+
+### Check if Pi-hole is responding:
+```bash
+nslookup google.com pi.hole
+```
+
+### Flush DNS cache after changes:
+```bash
+sudo systemd-resolve --flush-caches
+```
+
+## Additional Notes
+- Using hostname (`pi.hole`) is preferred over IP address for flexibility
+- If using static IP, ensure it matches your Pi-hole's actual IP
+- Changes persist across reboots
+- This configuration prevents DNS leaks and ensures all queries go through Pi-hole

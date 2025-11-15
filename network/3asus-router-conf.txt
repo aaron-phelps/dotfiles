@@ -1,0 +1,212 @@
+# Configure ASUS Router for Pi-hole
+
+## Overview
+This guide configures your ASUS router to direct all DNS queries through Pi-hole for network-wide ad blocking.
+
+## Prerequisites
+- Pi-hole installed and running
+- Pi-hole IP address or hostname (e.g., `192.x.x.x` or `pi.hole`)
+- Admin access to ASUS router web interface
+
+## Configuration Steps
+
+### Step 1: Access Router Admin Interface
+1. Open browser and navigate to: `https://192.168.50.1:8443`
+   - **Note:** URL may vary by router model. Common alternatives:
+     - `http://router.asus.com`
+     - `http://192.168.1.1`
+     - `https://192.168.1.1:8443`
+     - or use phone app
+2. Accept the security certificate warning if prompted
+3. Log in with admin credentials
+
+### Step 2: Configure LAN DHCP DNS Settings
+1. Navigate to **LAN** → **DHCP Server**
+2. Under **DNS and WINS Server Settings**:
+   - **DNS Server 1:** Enter your Pi-hole IP address (e.g., `192.xxx.xx.xxx`)
+   - **DNS Server 2:** **Leave blank** or enter Pi-hole IP again
+   - **❌ DO NOT** use `8.8.8.8`, `1.1.1.1`, or any other public DNS
+3. Click **Apply**
+
+**Why leave DNS Server 2 blank?**
+- If you set a secondary DNS, devices may use it instead of Pi-hole, bypassing ad blocking
+
+### Step 3: Configure WAN DNS Settings (Optional)
+1. Navigate to **WAN** → **Internet Connection**
+2. Under **WAN DNS Settings**:
+   - **Connect to DNS Server automatically:** No
+   - **DNS Server 1:** `1.1.1.1` (Cloudflare) or `8.8.8.8` (Google)
+   - **DNS Server 2:** `1.0.0.1` or `8.8.4.4`
+
+**Note:** WAN DNS is what the *router* uses, not your devices. Pi-hole will use this for upstream queries.
+
+### Step 4: Disable DNS Director (if present)
+**For newer ASUS routers with DNS Director feature:**
+1. Navigate to **WAN** → **DNS Director**
+2. **Disable** or ensure no rules override DHCP DNS settings
+3. Click **Apply**
+
+### Step 5: Disable or Configure IPv6
+**Option A: Disable IPv6 (Simplest)**
+1. Navigate to **IPv6** → **Basic Config**
+2. Set **Connection Type:** Disabled
+3. Click **Apply**
+
+**Option B: Configure IPv6 DNS (Advanced)**
+1. Navigate to **IPv6** → **Basic Config**
+2. **DHCPv6 Server:** Enable
+3. Under **DNS Server Settings**:
+   - **DNS Server 1:** Your Pi-hole IPv6 address (if configured)
+   - **DNS Server 2:** Leave blank
+4. Click **Apply**
+
+**Why?** Many devices use IPv6 DNS if available, which can bypass Pi-hole.
+
+### Step 6: Disable Features That May Interfere
+
+#### DNS Rebind Protection
+1. Navigate to **Administration** → **System**
+2. Find **Enable DNS Rebind protection**
+3. **Disable** this option
+4. Click **Apply**
+
+**Why?** DNS Rebind protection can block Pi-hole's responses.
+
+#### DNSFilter (if present)
+1. Navigate to **AiProtection** → **Parental Controls** → **DNS-based Filtering**
+2. Set **Enable DNS-based Filtering:** Off
+3. Click **Apply**
+
+**Why?** DNSFilter applies its own DNS rules that conflict with Pi-hole.
+
+#### AiProtection Two-Way IPS (Optional)
+1. Navigate to **AiProtection** → **Two-Way IPS**
+2. Consider disabling if experiencing issues
+3. Click **Apply**
+
+**Note:** Only disable if you notice DNS issues. Pi-hole provides similar protection.
+
+### Step 7: Reboot Router
+1. Navigate to **Administration** → **System**
+2. Click **Reboot**
+3. Wait 2-3 minutes for router to fully restart
+
+### Step 8: Renew DHCP Leases on Client Devices
+
+**Windows:**
+```cmd
+ipconfig /release
+ipconfig /renew
+ipconfig /flushdns
+```
+
+**macOS/Linux:**
+```bash
+sudo dhclient -r
+sudo dhclient
+# Or disconnect/reconnect WiFi
+```
+
+**Arch Linux (systemd-resolved):**
+```bash
+sudo systemctl restart systemd-resolved
+```
+
+**Mobile devices:**
+- Disconnect from WiFi and reconnect
+- Or forget network and rejoin
+
+## Verification
+
+### Check DHCP Clients Are Getting Correct DNS
+1. In ASUS router: **Network Map** → **Clients**
+2. Click on a connected device
+3. Verify DNS server shows your Pi-hole IP
+
+### Test DNS Resolution
+**On any device:**
+```bash
+# Windows (PowerShell)
+nslookup google.com
+
+# Linux/Mac
+dig google.com | grep SERVER
+# or
+nslookup google.com
+```
+
+**Expected result:** Server should be your Pi-hole IP
+
+### Check Pi-hole Query Log
+1. Open Pi-hole admin: `http://pi.hole/admin`
+2. Navigate to **Tools** → **Query Log**
+3. You should see queries from various devices on your network
+4. Blocked queries will appear in red
+
+## Advanced: Force All DNS Through Pi-hole (Firewall Rules)
+
+**Prevents devices from using hardcoded DNS servers (e.g., smart TVs, IoT devices)**
+
+### Using ASUS-Merlin Firmware
+If you're running ASUS-Merlin firmware, add via SSH:
+```bash
+# SSH into router
+ssh admin@192.168.50.1
+
+# Add iptables rules (add to firewall-start script for persistence)
+iptables -t nat -A PREROUTING ! -s <PIHOLE_IP> -p tcp --dport 53 -j DNAT --to <PIHOLE_IP>:53
+iptables -t nat -A PREROUTING ! -s <PIHOLE_IP> -p udp --dport 53 -j DNAT --to <PIHOLE_IP>:53
+
+# Block DNS over TLS/HTTPS (port 853)
+iptables -I FORWARD -p tcp --dport 853 -j REJECT
+iptables -I FORWARD -p udp --dport 853 -j REJECT
+```
+
+Replace `<PIHOLE_IP>` with your actual Pi-hole IP address.
+
+## Troubleshooting
+
+### Devices still showing ads
+1. **Check device DNS settings:** Some devices ignore DHCP DNS
+   - Manually set DNS on device to Pi-hole IP
+2. **Check for DNS over HTTPS (DoH):** Browsers may use DoH
+   - Disable in browser settings (Chrome, Firefox, Edge)
+3. **Verify Pi-hole is running:**
+```bash
+   pihole status
+```
+4. **Check systemd-resolved on Linux:**
+```bash
+   resolvectl status
+```
+
+### Can't access router admin after changes
+- Try: `https://192.168.50.1:8443`
+- Reset network settings on device
+- Factory reset router if necessary (hold reset button 10+ seconds)
+
+### Pi-hole becomes unreachable
+- Set a static IP for Pi-hole device
+- Ensure Pi-hole is always online
+- Consider setting router DNS to Pi-hole + `1.1.1.1` as backup (not ideal but prevents network outage)
+
+## Best Practices
+
+1. **Set Pi-hole to Static IP:** Prevents IP changes via DHCP
+   - In router: **LAN** → **DHCP Server** → **Manual Assignment**
+   - Bind Pi-hole MAC address to specific IP
+
+2. **Monitor Pi-hole uptime:** If Pi-hole goes offline, DNS fails
+   - Consider secondary Pi-hole for redundancy
+
+3. **Keep router firmware updated:**
+   - **Administration** → **Firmware Update**
+
+4. **Document your settings:** Save current configuration
+   - **Administration** → **Restore/Save/Upload Setting**
+
+## Notes
+- Router admin interface: `https://192.168.50.1:8443`
+- Pi-hole IP used in examples: `192.xxx.xx.xxx`
+- Network subnet: `192.168.50.x`
+- Adjust IP addresses to match your network configuration
