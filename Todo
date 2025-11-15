@@ -1,4 +1,4 @@
-fix keybinds
+fix keybinds - zeditor - copy/paste global for kitty etc
 add emojiis for discord
 fix rofi app menu
 fix screenshot rofi menu
@@ -10,3 +10,4 @@ fix theme for calendar
 fix waybar for screenshots/recordings
 fix waybar for monitor update
 fix fish config
+create password manager - dont give to github tho :P
