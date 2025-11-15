@@ -23,12 +23,14 @@ hypridle
 hyprland
 hyprlock
 hyprpaper
+iw
 iwd
 jq
 kitty
 libpulse
 linux
 linux-firmware
+mpv
 nano
 openssh
 pipewire
