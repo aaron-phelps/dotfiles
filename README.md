@@ -23,7 +23,7 @@ git clone https://github.com/aaron-phelps/dotfiles.git
 
 ### Run system_setup.sh
 
-copy Scripts from dotfiles to ~/
+copy home/Scripts from dotfiles to ~/
 
 cd ~/Scripts
 
