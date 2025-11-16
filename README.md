@@ -38,15 +38,26 @@ git clone https://github.com/aaron-phelps/dotfiles.git
 
 cd dotfiles
 
-(remove all pkgs not in the list below and installs only the items in the list)
-
-sudo pacman -S --needed - < pkglist_min.txt; comm -23 <(pacman -Qqen | sort) <(sort pkglist_min.txt) | sudo xargs -r pacman -Rns
+while IFS= read -r pkg; do
+  if ! pacman -Qi "$pkg" &>/dev/null; then
+    sudo pacman -S --noconfirm "$pkg" || echo "Failed to install $pkg"
+  else
+    echo "$pkg is already installed. Skipping..."
+  fi
+done < pkglist_min.txt
 
 Reinstall AUR packages:
 
 cd dotfiles
 
-yay -S --needed - < aur_pkglist_min.txt && comm -23 <(yay -Qqem | sort) <(sort aur_pkglist_min.txt) | xargs -r yay -Rns
+while IFS= read -r pkg; do
+  if ! pacman -Qi "$pkg" &>/dev/null; then
+    echo "Installing $pkg..."
+    yay -S --noconfirm "$pkg" || echo "Failed to install $pkg"
+  else
+    echo "$pkg is already installed. Skipping..."
+  fi
+done < aur_pkglist_min.txt
 
 ## 3. Copy git .config files to .config
 
