@@ -93,17 +93,32 @@ else
 fi
 
 # Step 3: Remove packages not in pkglist_min.txt
-print_status "Step 3: Removing packages not in pkglist_min.txt..."
+print_status "Step 3: Removing official packages not in pkglist_min.txt..."
 
-# Get explicitly installed packages
-mapfile -t INSTALLED_EXPLICIT < <(pacman -Qqe)
+# Check if AUR package list exists (we need it to avoid removing AUR packages here)
+if [ ! -f ~/dotfiles/aur_pkglist_min.txt ]; then
+    print_error "File ~/dotfiles/aur_pkglist_min.txt not found!"
+    exit 1
+fi
 
-# Find packages to remove (installed but not in desired list)
+# Read AUR package list early so we don't remove them here
+mapfile -t DESIRED_AUR_PACKAGES < <(grep -v '^#' ~/dotfiles/aur_pkglist_min.txt | grep -v '^$') 2>/dev/null || DESIRED_AUR_PACKAGES=()
+
+# Get explicitly installed official packages (not from AUR)
+mapfile -t INSTALLED_OFFICIAL < <(pacman -Qqe | grep -vxFf <(pacman -Qqm))
+
+# Find packages to remove (installed but not in desired list, and not AUR packages or yay)
 PACKAGES_TO_REMOVE=()
-for pkg in "${INSTALLED_EXPLICIT[@]}"; do
-    if [[ ! " ${DESIRED_PACKAGES[*]} " =~ " ${pkg} " ]]; then
-        PACKAGES_TO_REMOVE+=("$pkg")
+for pkg in "${INSTALLED_OFFICIAL[@]}"; do
+    # Skip if in desired packages list
+    if [[ " ${DESIRED_PACKAGES[*]} " =~ " ${pkg} " ]]; then
+        continue
     fi
+    # Skip yay (will be managed separately)
+    if [[ "$pkg" == "yay" ]]; then
+        continue
+    fi
+    PACKAGES_TO_REMOVE+=("$pkg")
 done
 
 if [ ${#PACKAGES_TO_REMOVE[@]} -gt 0 ]; then
@@ -135,13 +150,7 @@ fi
 
 # Step 4: Install and manage AUR packages
 print_status "Step 4: Installing AUR packages from ~/dotfiles/aur_pkglist_min.txt..."
-if [ ! -f ~/dotfiles/aur_pkglist_min.txt ]; then
-    print_error "File ~/dotfiles/aur_pkglist_min.txt not found!"
-    exit 1
-fi
-
-# Read AUR packages and install
-mapfile -t DESIRED_AUR_PACKAGES < <(grep -v '^#' ~/dotfiles/aur_pkglist_min.txt | grep -v '^$')
+# Note: DESIRED_AUR_PACKAGES was already loaded in Step 3
 if [ ${#DESIRED_AUR_PACKAGES[@]} -gt 0 ]; then
     print_status "Installing ${#DESIRED_AUR_PACKAGES[@]} AUR packages..."
     yay -S --needed --noconfirm "${DESIRED_AUR_PACKAGES[@]}" || print_warning "Some AUR packages may have failed to install"
@@ -159,9 +168,15 @@ mapfile -t INSTALLED_AUR < <(pacman -Qqm)
 # Find AUR packages to remove
 AUR_TO_REMOVE=()
 for pkg in "${INSTALLED_AUR[@]}"; do
-    if [[ ! " ${DESIRED_AUR_PACKAGES[*]} " =~ " ${pkg} " ]]; then
-        AUR_TO_REMOVE+=("$pkg")
+    # Skip if in desired AUR packages list
+    if [[ " ${DESIRED_AUR_PACKAGES[*]} " =~ " ${pkg} " ]]; then
+        continue
     fi
+    # Skip yay itself (keep the AUR helper)
+    if [[ "$pkg" == "yay" ]]; then
+        continue
+    fi
+    AUR_TO_REMOVE+=("$pkg")
 done
 
 if [ ${#AUR_TO_REMOVE[@]} -gt 0 ]; then
