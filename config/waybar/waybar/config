@@ -1,0 +1,245 @@
+{
+  "reload_style_on_change": true,
+  "layer": "top",
+  "position": "top",
+  "height": 45,
+  "margin-bottom": 0,
+  "margin-top": 6,
+  "margin-right": 10,
+  "margin-left": 10,
+  "spacing": 1,
+
+  "modules-left": [
+    "custom/wallpaper",
+    "custom/separator",
+    "custom/launcher",
+    "custom/separator",
+    "hyprland/workspaces",
+    "custom/separator",
+    "tray",
+    "custom/separator",
+    "custom/cava",
+    "custom/separator",
+    "pulseaudio",
+    "custom/separator",
+    "privacy",
+    "custom/separator",
+    "custom/recording"
+  ],
+
+  "modules-center": ["clock"],
+
+  "modules-right": [
+    "cpu",
+    "custom/cpu-temp",
+    "custom/separator",
+    "memory",
+    "custom/separator",
+    "custom/gpu",
+    "custom/gpu-temp",
+    "custom/separator",
+    "custom/network",
+    "custom/separator",
+    "backlight",
+    "custom/separator",
+    "battery",
+    "custom/separator",
+    "custom/notification",
+    "custom/separator",
+    "custom/power"
+  ],
+
+  "hyprland/workspaces": {
+    "disable-scroll": true,
+    "all-outputs": true,
+    "persistent-workspaces": {
+      "*": [1, 2, 3, 4, 5, 6]
+    },
+    "format": "{name}"
+  },
+
+  "cpu": {
+    "interval": 1,
+    "format": "   {icon0}{icon1}{icon2}{icon3} {usage:>2}%",
+    "format-icons": ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"],
+    "on-click": "kitty -e htop"
+  },
+
+  "custom/cpu-temp": {
+    "exec": "cpu_hwmon=$(grep -l -E 'k10temp|coretemp|zenpower' /sys/class/hwmon/hwmon*/name 2>/dev/null | head -1 | xargs dirname); temp_c=$(cat $cpu_hwmon/temp1_input 2>/dev/null | awk '{print int($1/1000)}'); temp_f=$(( (temp_c * 9/5) + 32 )); echo \"${temp_f}°F\"",
+    "interval": 2,
+    "format": "{}",
+    "tooltip-format": "CPU Temp"
+  },
+
+  "memory": {
+    "interval": 30,
+    "format": "   {used:0.1f}G/{total:0.1f}G",
+    "tooltip-format": "Memory"
+  },
+
+  "custom/gpu": {
+    "exec": "if command -v nvidia-smi &>/dev/null && nvidia-smi &>/dev/null 2>&1; then nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits | awk '{usage=$1; bars=int(usage/20); for(i=0;i<bars;i++)printf \"▰\"; for(i=0;i<5-bars;i++)printf \"▱\"; printf \" %d%%\", usage}'; else gpu_card=$(find /sys/class/drm/card*/device/gpu_busy_percent 2>/dev/null | head -1 | xargs dirname); usage=$(cat $gpu_card/gpu_busy_percent 2>/dev/null || echo 0); bars=$((usage/20)); for((i=0;i<bars;i++)); do printf '▰'; done; for((i=0;i<5-bars;i++)); do printf '▱'; done; printf ' %d%%' $usage; fi",
+    "interval": 2,
+    "format": "{}",
+    "tooltip-format": "GPU"
+  },
+
+  "custom/gpu-temp": {
+    "exec": "if command -v nvidia-smi &>/dev/null && nvidia-smi &>/dev/null 2>&1; then nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits | awk '{temp_f=int(($1*9/5)+32); print temp_f\"°F\"}'; else gpu_hwmon=$(grep -l 'amdgpu' /sys/class/hwmon/hwmon*/name 2>/dev/null | head -1 | xargs dirname); temp_c=$(cat $gpu_hwmon/temp1_input 2>/dev/null | awk '{print int($1/1000)}'); temp_f=$(( (temp_c * 9/5) + 32 )); echo \"${temp_f}°F\"; fi",
+    "interval": 2,
+    "format": "{}",
+    "tooltip-format": "GPU Temp"
+  },
+
+  "clock": {
+    "timezone": "America/Chicago",
+    "tooltip": false,
+    "format": "{:%I:%M:%S %p ~ %A, %B %d %Y}",
+    "interval": 1,
+    "on-click": "gnome-calendar"
+},
+
+  "privacy": {
+    "icon-spacing": 8,
+    "icon-size": 14,
+    "transition-duration": 250,
+    "modules": [
+      {
+        "type": "screenshare",
+        "tooltip": true,
+        "tooltip-icon-size": 24
+      }
+    ]
+  },
+
+  "bluetooth": {
+    "format": "󰂲",
+    "format-on": "{icon}",
+    "format-off": "{icon}",
+    "format-connected": "{icon}",
+    "format-icons": {
+      "on": "󰂯",
+      "off": "󰂲",
+      "connected": "󰂱"
+    },
+    "on-click": "blueman-manager",
+    "tooltip-format-connected": "{device_enumerate}"
+  },
+
+  "custom/network": {
+    "exec": "~/Scripts/network-display.sh",
+    "return-type": "json",
+    "interval": 2,
+    "on-click": "kitty iwctl",
+    "on-click-right": "~/Scripts/network-cycle.sh",
+    "tooltip": true
+  },
+
+  "network-old": {
+    "format-wifi": "󰖩   {essid} ({signalStrength}%)",
+    "format-ethernet": "󰈀 {ipaddr}/{cidr}",
+    "format-disconnected": "󰖪  Disconnected",
+    "tooltip-format": "{ifname} via {gwaddr}",
+    "tooltip-format-wifi": "󰖩   {essid} ({signalStrength}%)\n󰈀 {ipaddr}/{cidr}\n {bandwidthDownBytes}  {bandwidthUpBytes}",
+    "tooltip-format-ethernet": "󰈀 {ifname}\n󰩟 {ipaddr}/{cidr}\n {bandwidthDownBytes}  {bandwidthUpBytes}",
+    "tooltip-format-disconnected": "Disconnected",
+    "format-alt": " {bandwidthDownBytes}  {bandwidthUpBytes}",
+    "on-click": "kitty iwctl",
+    "interval": 5,
+    "max-length": 50
+},
+
+  "pulseaudio": {
+    "format": "{icon}  {volume}%",
+    "format-muted": "",
+    "format-icons": {
+      "default": ["", "", " "]
+    },
+    "on-click": "kitty pulsemixer",
+    "tooltip": true
+    },
+
+  "backlight": {
+    "format": "{icon}  {percent}%",
+    "format-icons": ["","󰃜", "󰃛", "󰃞","󰃝","󰃟","󰃠"],
+    "tooltip-format": "Backlight"
+  },
+
+  "battery": {
+    "interval":2,
+    "states": {
+      "warning": 30,
+      "critical": 15
+    },
+    "format": "{icon} {capacity}%",
+    "format-full": "{icon} {capacity}%",
+    "format-charging": " {capacity}%",
+    "format-plugged": " {capacity}%",
+    "format-alt": "{icon} {time}",
+    "format-icons": ["", "", "", "", ""]
+  },
+
+
+
+  "custom/power": {
+    "format": "⏻",
+    "tooltip": "Power Menu",
+    "on-click": "~/Scripts/powermenu.sh",
+    "tooltip-format": "Power"
+  },
+
+  "custom/cava": {
+    "exec": "~/Scripts/cava.sh",
+    "format": "{}",
+    "tooltip": false
+  },
+
+  "custom/recording": {
+    "exec": "~/Scripts/recording-status.sh",
+    "return-type": "json",
+    "format": "{}",
+    "on-click": "~/Scripts/stop-recording.sh",
+    "interval": 1
+  },
+
+  "custom/separator": {
+    "format": " ",
+    "tooltip": false
+  },
+
+  "custom/launcher": {
+    "format": "󰮫",
+    "on-click": "rofi -show drun",
+    "tooltip-format": "Apps"
+  },
+
+  "custom/wallpaper": {
+    "format": "󰸉 ",
+    "on-click": "~/Scripts/wallpaper.sh",
+    "tooltip-format": "Wallpaper"
+  },
+
+  "tray": {
+    "spacing": 10
+  },
+
+  "custom/notification": {
+    "tooltip": false,
+    "format": "{0} {icon} ",
+    "format-icons": {
+      "notification": "󰂞",
+      "none": "",
+      "dnd-notification": "󰂛",
+      "dnd-none": "󱏧",
+      "inhibited-notification": "󱏧",
+      "inhibited-none": "󱏧"
+    },
+    "return-type": "json",
+    "exec-if": "which swaync-client",
+    "exec": "swaync-client -swb",
+    "on-click": "swaync-client -t -sw",
+    "on-click-right": "swaync-client -d -sw",
+    "escape": true
+  }
+}
