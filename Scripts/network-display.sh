@@ -54,7 +54,7 @@ if [ -d "/sys/class/net/$DEVICE/wireless" ]; then
     fi
 
     # Build tooltip with all info
-    TOOLTIP="󰖩   $ESSID ($SIGNAL%)\\n󰩠 $IP\\n  $RX_DISPLAY    $TX_DISPLAY"
+    TOOLTIP="󰖩   $ESSID ($SIGNAL%)\\n󰩠 $IP\\n $RX_DISPLAY   $TX_DISPLAY"
 
     case $STATE in
         0)
@@ -67,7 +67,7 @@ if [ -d "/sys/class/net/$DEVICE/wireless" ]; then
             ;;
         2)
             # Show bandwidth
-            echo "{\"text\": \"  $RX_DISPLAY   $TX_DISPLAY\", \"tooltip\": \"$TOOLTIP\", \"class\": \"wifi\"}"
+            echo "{\"text\": \"  $RX_DISPLAY    $TX_DISPLAY\", \"tooltip\": \"$TOOLTIP\", \"class\": \"wifi\"}"
             ;;
     esac
 else
@@ -98,7 +98,7 @@ else
     fi
 
     # Build tooltip with all info
-    TOOLTIP="󰈀 Ethernet\\n󰩠 $IP\\n  $RX_DISPLAY  $TX_DISPLAY"
+    TOOLTIP="󰈀 Ethernet\\n󰩠 $IP\\n  $RX_DISPLAY   $TX_DISPLAY"
 
     case $STATE in
         0)
@@ -111,7 +111,7 @@ else
             ;;
         2)
             # Show bandwidth
-            echo "{\"text\": \" $RX_DISPLAY  $TX_DISPLAY\", \"tooltip\": \"$TOOLTIP\", \"class\": \"ethernet\"}"
+            echo "{\"text\": \"  $RX_DISPLAY   $TX_DISPLAY\", \"tooltip\": \"$TOOLTIP\", \"class\": \"ethernet\"}"
             ;;
     esac
 fi
