@@ -8,6 +8,7 @@ config/gnome-keyring/
 **/*cache*/
 **/*.log
 **/*.lock
+**.steampid*
 
 # Session files
 config/fish/fish_variables
