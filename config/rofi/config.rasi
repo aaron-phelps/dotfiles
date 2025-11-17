@@ -1,0 +1,162 @@
+/**
+ * Rofi Theme - Matching Hyprland/Waybar Aesthetic
+ * Dark semi-transparent with gray borders
+ */
+
+* {
+    font: "Google Sans Code 13";
+
+    bg-color: rgba(20, 20, 20, 0.7);
+    fg-color: #ffffff;
+    border-color: #666666;
+    selected-bg: rgba(80, 80, 80, 0.5);
+    selected-fg: #ffffff;
+    urgent-bg: rgba(255, 0, 0, 0.3);
+    urgent-fg: #ffffff;
+
+    background-color: transparent;
+    text-color: @fg-color;
+}
+
+window {
+    width: 450px;
+    background-color: @bg-color;
+    border: 2px solid;
+    border-color: @border-color;
+    border-radius: 12px;
+    padding: 10px;
+}
+
+mainbox {
+    background-color: transparent;
+    spacing: 10px;
+}
+
+inputbar {
+    background-color: transparent;
+    border: 0px;
+    padding: 8px;
+    spacing: 8px;
+}
+
+prompt {
+    background-color: transparent;
+    text-color: @fg-color;
+}
+
+entry {
+    background-color: transparent;
+    text-color: @fg-color;
+    placeholder: "Search...";
+    placeholder-color: rgba(255, 255, 255, 0.5);
+}
+
+case-indicator {
+    background-color: transparent;
+    text-color: @fg-color;
+}
+
+listview {
+    background-color: transparent;
+    lines: 8;
+    scrollbar: false;
+    spacing: 4px;
+    padding: 4px;
+}
+
+element {
+    background-color: transparent;
+    text-color: @fg-color;
+    padding: 8px;
+    border-radius: 10px;
+}
+
+element normal.normal {
+    background-color: transparent;
+    text-color: @fg-color;
+}
+
+element normal.urgent {
+    background-color: @urgent-bg;
+    text-color: @urgent-fg;
+}
+
+element normal.active {
+    background-color: @selected-bg;
+    text-color: @selected-fg;
+}
+
+element selected.normal {
+    background-color: @selected-bg;
+    text-color: @selected-fg;
+}
+
+element selected.urgent {
+    background-color: @urgent-bg;
+    text-color: @urgent-fg;
+}
+
+element selected.active {
+    background-color: @selected-bg;
+    text-color: @selected-fg;
+}
+
+element alternate.normal {
+    background-color: transparent;
+    text-color: @fg-color;
+}
+
+element alternate.urgent {
+    background-color: @urgent-bg;
+    text-color: @urgent-fg;
+}
+
+element alternate.active {
+    background-color: @selected-bg;
+    text-color: @selected-fg;
+}
+
+element-text {
+    background-color: transparent;
+    text-color: inherit;
+}
+
+element-icon {
+    background-color: transparent;
+    size: 1.2em;
+    padding: 0px 8px 0px 0px;
+}
+
+scrollbar {
+    background-color: transparent;
+    handle-color: @border-color;
+    border-radius: 10px;
+    handle-width: 4px;
+}
+
+message {
+    background-color: transparent;
+    padding: 8px;
+}
+
+textbox {
+    background-color: transparent;
+    text-color: @fg-color;
+}
+
+mode-switcher {
+    background-color: transparent;
+    spacing: 0px;
+}
+
+button {
+    background-color: transparent;
+    text-color: @fg-color;
+    padding: 8px;
+    border-radius: 10px;
+}
+
+button selected {
+    background-color: @selected-bg;
+    text-color: @selected-fg;
+}

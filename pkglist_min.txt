@@ -15,7 +15,6 @@ git
 gnome-calendar
 gnome-control-center
 gnome-keyring
-gnome-online-accounts
 grim
 gst-plugin-pipewire
 htop
@@ -50,8 +49,6 @@ swaync
 swww
 thunar
 udiskie
-udisks2
-unzip
 uwsm
 vim
 vulkan-radeon

@@ -39,10 +39,10 @@ fi
 print_status "Step 0: Checking for yay AUR helper..."
 if ! command -v yay &> /dev/null; then
     print_warning "yay not found. Installing yay..."
-    
+
     # Install base-devel and git if not present
     sudo pacman -S --needed --noconfirm base-devel git
-    
+
     # Clone and build yay
     cd /tmp
     if [ -d "yay" ]; then
@@ -52,7 +52,7 @@ if ! command -v yay &> /dev/null; then
     cd yay
     makepkg -si --noconfirm
     cd ~
-    
+
     print_success "yay installed successfully"
 else
     print_success "yay is already installed"
@@ -65,12 +65,12 @@ if grep -q "^\[multilib\]" /etc/pacman.conf; then
 else
     print_warning "Enabling multilib repository..."
     sudo sed -i '/^#\[multilib\]/,/^#Include = \/etc\/pacman.d\/mirrorlist/ s/^#//' /etc/pacman.conf
-    
+
     # If the above didn't work (repo might be completely commented), try alternative
     if ! grep -q "^\[multilib\]" /etc/pacman.conf; then
         echo -e "\n[multilib]\nInclude = /etc/pacman.d/mirrorlist" | sudo tee -a /etc/pacman.conf
     fi
-    
+
     sudo pacman -Sy
     print_success "multilib repository enabled and database synchronized"
 fi
@@ -124,7 +124,7 @@ done
 if [ ${#PACKAGES_TO_REMOVE[@]} -gt 0 ]; then
     print_warning "The following ${#PACKAGES_TO_REMOVE[@]} packages will be removed:"
     printf '%s\n' "${PACKAGES_TO_REMOVE[@]}"
-    
+
     read -p "Do you want to proceed? (y/N): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -182,7 +182,7 @@ done
 if [ ${#AUR_TO_REMOVE[@]} -gt 0 ]; then
     print_warning "The following ${#AUR_TO_REMOVE[@]} AUR packages will be removed:"
     printf '%s\n' "${AUR_TO_REMOVE[@]}"
-    
+
     read -p "Do you want to proceed? (y/N): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -198,6 +198,7 @@ fi
 # Step 5: Create directories
 print_status "Step 5: Creating directories..."
 mkdir -p ~/Pictures/Wallpapers
+mkdir -p ~/Pictures/Screenshots
 mkdir -p ~/Videos/Recordings
 print_success "Directories created: ~/Pictures/Wallpapers and ~/Videos/Recordings"
 
