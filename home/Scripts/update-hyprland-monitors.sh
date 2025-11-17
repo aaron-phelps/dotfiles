@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
-HYPRCONF="$HOME/.config/hypr/hyprland.conf"
-BACKUP="$HOME/.config/hypr/hyprland.conf.bak"
+HYPRCONF="$HOME/.config/hypr/organized/monitor.conf"
+BACKUP="$HOME/.config/hypr/organized/monitor.conf.bkp"
 
 # 1️⃣ Restore backup
-read -rp "Do you want to restore hyprland.conf from backup? (y/n): " RESTORE
+read -rp "Do you want to restore monitor.conf from backup? (y/n): " RESTORE
 if [[ "$RESTORE" =~ ^[Yy]$ ]]; then
     if [[ -f "$BACKUP" ]]; then
         cp "$BACKUP" "$HYPRCONF"
@@ -138,7 +138,7 @@ for ((y=0;y<GRID_HEIGHT;y++)); do
 done
 
 # 7️⃣ Update config
-read -rp $'\nDo you want to update hyprland.conf monitor section? (y/n): ' UPDATE
+read -rp $'\nDo you want to update monitor.conf monitor section? (y/n): ' UPDATE
 if ! [[ "$UPDATE" =~ ^[Yy]$ ]]; then
     echo "No changes made. Exiting."
     exit 0
