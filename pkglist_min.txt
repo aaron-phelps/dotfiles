@@ -8,13 +8,9 @@ cava
 cmatrix
 discord
 efibootmgr
-evolution
 fastfetch
 fish
 git
-gnome-calendar
-gnome-control-center
-gnome-keyring
 grim
 gst-plugin-pipewire
 htop
@@ -47,7 +43,7 @@ smartmontools
 steam
 swaync
 swww
-thunar
+thunderbird
 udiskie
 uwsm
 vim
@@ -60,10 +56,12 @@ wireplumber
 wl-clipboard
 wpa_supplicant
 xdg-desktop-portal-hyprland
+xdg-desktop-portal-kde
 xdg-utils
 xf86-video-amdgpu
 xf86-video-ati
 xorg-server
 xorg-xinit
+yazi
 zed
 zram-generator
