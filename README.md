@@ -3,9 +3,8 @@
 This document describes how to:
 
 1. Clone repo and run shell script system_setup.sh  
-2. Restore .config files from repo
-3. Explain process for outputing all pkgs to a txt file (until a script for this is made)
-4. Setup Git creds to connect with Zeditor to github for proper pushing for new changes.
+2. Explain process for outputing all installed pkgs to a txt file (until a script for this is made)
+3. Setup Git creds to connect with Zeditor/editor of choice to github for proper pushing for new changes.
 
 ---
 
@@ -31,17 +30,10 @@ chmod +x system_setup.sh
 
 ./system_setup.sh
 
-## 2. Copy git .config files to .config
-
-Use zeditor/thunar or cp command in terminal to move files/folders as needed
-
-Reboot
-
----
 ### Done! Enjoy! - this is base installation - further steps show extra config
 ---
 
-## 3. Pacman and/or Yay installed pkgs to a txt file
+## 2. Pacman and/or Yay installed pkgs to a txt file
 
 cd ~/dotfiles
 
@@ -49,7 +41,7 @@ pacman -Qqen > pkglist_min.txt
 
 yay -Qeq --foreign > aur_pkglist_min.txt
 
-## 4. Git + Zeditor Setup on Arch Linux
+## 3. Git + Zeditor Setup on Arch Linux
 
 ### Create a GitHub PAT  
 

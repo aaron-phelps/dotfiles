@@ -97,7 +97,7 @@
     "tooltip": false,
     "format": "{:%I:%M:%S %p ~ %A, %B %d %Y}",
     "interval": 1,
-    "on-click": "gnome-calendar"
+    "on-click": "thunderbird"
 },
 
   "privacy": {

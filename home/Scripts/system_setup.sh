@@ -198,20 +198,40 @@ fi
 # Step 5: Create directories
 print_status "Step 5: Creating directories..."
 mkdir -p ~/Pictures/Wallpapers
-mkdir -p ~/Pictures/Screenshots
 mkdir -p ~/Videos/Recordings
 print_success "Directories created: ~/Pictures/Wallpapers and ~/Videos/Recordings"
 
 # Step 6: Move wallpaper
 print_status "Step 6: Moving default wallpaper..."
 if [ -f ~/dotfiles/wallpaper_default.jpg ]; then
-    cp ~/dotfiles/wallpaper_default.jpg ~/Pictures/Wallpapers/
+    cp -f ~/dotfiles/wallpaper_default.jpg ~/Pictures/Wallpapers/
     print_success "Wallpaper copied to ~/Pictures/Wallpapers/"
 else
     print_warning "Wallpaper file ~/dotfiles/wallpaper_default.jpg not found"
 fi
 
-# Final cleanup
+# Step 7: Copy config files
+print_status "Step 7: Copying config files from ~/dotfiles/config/ to ~/.config/..."
+if [ ! -d ~/dotfiles/config ]; then
+    print_warning "Directory ~/dotfiles/config/ not found, skipping config deployment"
+else
+    # Create .config directory if it doesn't exist
+    mkdir -p ~/.config
+
+    # Copy all contents from dotfiles/config to .config
+    # Using cp with recursive and force options to ensure overwrites
+    if [ "$(ls -A ~/dotfiles/config)" ]; then
+        cp -rf ~/dotfiles/config/* ~/.config/
+        print_success "Config files copied to ~/.config/"
+
+        # List what was copied
+        CONFIG_COUNT=$(find ~/dotfiles/config/ -maxdepth 1 -mindepth 1 | wc -l)
+        print_status "Deployed $CONFIG_COUNT configuration directories/files"
+    else
+        print_warning "No config files found in ~/dotfiles/config/"
+    fi
+fi
+
 print_status "Performing final cleanup..."
 sudo pacman -Sc --noconfirm
 yay -Sc --noconfirm
@@ -225,5 +245,6 @@ echo "  • Official packages: synchronized"
 echo "  • AUR packages: synchronized"
 echo "  • Directories: created"
 echo "  • Wallpaper: moved"
+echo "  • Config files: deployed"
 echo
 print_warning "Please reboot your system for all changes to take effect."
