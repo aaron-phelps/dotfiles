@@ -1,83 +1,12 @@
-/* Custom GTK3 theme to match Waybar aesthetic */
-
-/* Menu and context menu styling */
+/* Menu styling only */
 menu,
-.menu,
-.context-menu {
+.menu {
     background-color: rgba(20, 20, 20, 0.95);
-    color: #ffffff;
     border: 2px solid #666666;
     border-radius: 10px;
-    padding: 4px;
-}
-
-menuitem,
-.menuitem {
-    background-color: transparent;
-    color: #ffffff;
-    border-radius: 8px;
-    padding: 6px 12px;
-    margin: 2px;
 }
 
 menuitem:hover,
 .menuitem:hover {
     background-color: rgba(80, 80, 80, 0.5);
-}
-
-menuitem:disabled,
-.menuitem:disabled {
-    color: #666666;
-}
-
-/* Separators in menus */
-separator,
-.separator {
-    background-color: #666666;
-    min-height: 1px;
-}
-
-/* Tooltips */
-tooltip,
-.tooltip {
-    background-color: rgba(20, 20, 20, 0.95);
-    color: #ffffff;
-    border: 2px solid #666666;
-    border-radius: 10px;
-    padding: 8px;
-}
-
-tooltip *,
-.tooltip * {
-    background-color: transparent;
-    color: #ffffff;
-}
-
-/* Popover menus */
-popover,
-.popover {
-    background-color: rgba(20, 20, 20, 0.95);
-    color: #ffffff;
-    border: 2px solid #666666;
-    border-radius: 10px;
-    padding: 4px;
-}
-
-popover > contents,
-.popover > contents {
-    background-color: transparent;
-}
-
-/* General window/widget background */
-window {
-    background-color: rgba(20, 20, 20, 0.95);
-}
-
-/* Ensure text is white */
-* {
-    color: #ffffff;
-}
-
-label {
-    color: #ffffff;
 }
