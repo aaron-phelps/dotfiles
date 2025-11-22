@@ -1,0 +1,130 @@
+# Yazi theme - matching Waybar aesthetic
+
+[manager]
+cwd = { fg = "#ffffff" }
+
+# Hovered
+hovered         = { fg = "#ffffff", bg = "#505050" }
+preview_hovered = { underline = true }
+
+# Find
+find_keyword  = { fg = "#ffffff", bg = "#505050", bold = true }
+find_position = { fg = "#666666", bg = "reset", italic = true }
+
+# Marker
+marker_selected = { fg = "#ffffff", bg = "#505050" }
+marker_copied   = { fg = "#ffffff", bg = "#505050" }
+marker_cut      = { fg = "#ffffff", bg = "#505050" }
+
+# Tab
+tab_active   = { fg = "#ffffff", bg = "#141414" }
+tab_inactive = { fg = "#666666", bg = "#1e1e1e" }
+tab_width    = 1
+
+# Border
+border_symbol = "│"
+border_style  = { fg = "#666666" }
+
+# Highlighting
+syntect_theme = ""
+
+[status]
+separator_open  = ""
+separator_close = ""
+separator_style = { fg = "#666666", bg = "#141414" }
+
+# Mode
+mode_normal = { fg = "#ffffff", bg = "#141414", bold = true }
+mode_select = { fg = "#ffffff", bg = "#505050", bold = true }
+mode_unset  = { fg = "#ffffff", bg = "#141414", bold = true }
+
+# Progress
+progress_label  = { fg = "#ffffff", bold = true }
+progress_normal = { fg = "#ffffff", bg = "#141414" }
+progress_error  = { fg = "#ff6666", bg = "#141414" }
+
+# Permissions
+permissions_t = { fg = "#ffffff" }
+permissions_r = { fg = "#ffffff" }
+permissions_w = { fg = "#ffffff" }
+permissions_x = { fg = "#ffffff" }
+permissions_s = { fg = "#666666" }
+
+[input]
+border   = { fg = "#666666" }
+title    = { fg = "#ffffff" }
+value    = { fg = "#ffffff" }
+selected = { bg = "#505050" }
+
+[select]
+border   = { fg = "#666666" }
+active   = { fg = "#ffffff", bg = "#505050" }
+inactive = { fg = "#ffffff" }
+
+[tasks]
+border  = { fg = "#666666" }
+title   = { fg = "#ffffff" }
+hovered = { fg = "#ffffff", bg = "#505050", underline = true }
+
+[which]
+cols = 3
+mask            = { bg = "#141414" }
+cand            = { fg = "#ffffff" }
+rest            = { fg = "#666666" }
+desc            = { fg = "#666666" }
+separator       = "  "
+separator_style = { fg = "#666666" }
+
+[help]
+on      = { fg = "#ffffff" }
+run     = { fg = "#666666" }
+desc    = { fg = "#666666" }
+hovered = { bg = "#505050", bold = true }
+footer  = { fg = "#666666", bg = "#141414" }
+
+[filetype]
+rules = [
+    # Images
+    { mime = "image/*", fg = "#4a9eff" },
+
+    # Videos
+    { mime = "video/*", fg = "#ff6b9d" },
+
+    # Audio
+    { mime = "audio/*", fg = "#a6e3a1" },
+
+    # Archives
+    { mime = "application/*zip", fg = "#f9e2af" },
+    { mime = "application/*tar", fg = "#f9e2af" },
+    { mime = "application/*rar", fg = "#f9e2af" },
+
+    # Documents
+    { mime = "application/pdf", fg = "#f38ba8" },
+    { name = "*.doc*", fg = "#89b4fa" },
+    { name = "*.xls*", fg = "#a6e3a1" },
+    { name = "*.ppt*", fg = "#f9e2af" },
+
+    # Code
+    { name = "*.sh", fg = "#a6e3a1" },
+    { name = "*.py", fg = "#89b4fa" },
+    { name = "*.js", fg = "#f9e2af" },
+    { name = "*.rs", fg = "#fab387" },
+    { name = "*.go", fg = "#89dceb" },
+
+    # Folders
+    { name = "*/", fg = "#89b4fa" },
+
+    # Fallback
+    { name = "*", fg = "#ffffff" },
+]
+
+[icons]
+# Use your Nerd Fonts icons
+"Desktop/"     = ""
+"Documents/"   = ""
+"Downloads/"   = ""
+"Pictures/"    = ""
+"Music/"       = ""
+"Videos/"      = ""
+".config/"     = ""
+".git/"        = ""
