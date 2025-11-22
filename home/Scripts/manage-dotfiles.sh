@@ -94,15 +94,43 @@ add_item() {
     local source_path="$HOME_DIR/$normalized_path"
     local repo_path="$DOTFILES_DIR/$(path_to_repo "$normalized_path")"
 
-    # Check if source exists
-    if [ ! -e "$source_path" ]; then
-        echo -e "${RED}Error: $source_path does not exist${NC}"
-        exit 1
+    # Check if already a symlink pointing to the right place
+    if [ -L "$source_path" ]; then
+        local link_target=$(readlink -f "$source_path")
+        if [ "$link_target" = "$repo_path" ]; then
+            echo -e "${GREEN}✓ $normalized_path is already correctly linked${NC}"
+            exit 0
+        else
+            echo -e "${YELLOW}Warning: $normalized_path is a symlink to a different location${NC}"
+            echo "  Current: $link_target"
+            echo "  Expected: $repo_path"
+            exit 1
+        fi
     fi
 
-    # Check if already a symlink
-    if [ -L "$source_path" ]; then
-        echo -e "${YELLOW}Warning: $normalized_path is already a symlink${NC}"
+    # Check if already exists in repo (reconnect scenario)
+    if [ -e "$repo_path" ]; then
+        echo -e "${YELLOW}$normalized_path already exists in repo, reconnecting...${NC}"
+
+        # If source exists and is not a symlink, back it up
+        if [ -e "$source_path" ]; then
+            echo "Creating backup of existing file/folder..."
+            mv "$source_path" "$source_path.backup"
+        fi
+
+        # Create symlink
+        echo "Creating symlink..."
+        ln -sf "$repo_path" "$source_path"
+
+        echo -e "${GREEN}✓ Successfully reconnected $normalized_path${NC}"
+        echo "  Source: $source_path"
+        echo "  Repo:   $repo_path"
+        exit 0
+    fi
+
+    # New item - check if source exists
+    if [ ! -e "$source_path" ]; then
+        echo -e "${RED}Error: $source_path does not exist${NC}"
         exit 1
     fi
 
@@ -111,9 +139,9 @@ add_item() {
     # Create parent directory in repo
     mkdir -p "$(dirname "$repo_path")"
 
-    # Copy to repo
+    # Copy to repo - use -T flag to avoid nesting
     echo "Copying to repo..."
-    cp -r "$source_path" "$repo_path"
+    cp -rT "$source_path" "$repo_path"
 
     # Backup original
     echo "Creating backup..."
