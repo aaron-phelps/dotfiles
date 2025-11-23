@@ -64,8 +64,6 @@ listview {
     spacing: 4px;
     padding: 4px;
     sort: true;
-    show-icons: true;
-    disable-history: true;
 }
 
 element {
