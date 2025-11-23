@@ -42,6 +42,7 @@ inputbar {
 prompt {
     background-color: transparent;
     text-color: @fg-color;
+    enabled: false;
 }
 
 entry {
@@ -59,9 +60,12 @@ case-indicator {
 listview {
     background-color: transparent;
     lines: 8;
-    scrollbar: false;
+    scrollbar: true;
     spacing: 4px;
     padding: 4px;
+    sort: true;
+    show-icons: true;
+    disable-history: true;
 }
 
 element {
