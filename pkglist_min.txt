@@ -5,6 +5,7 @@ blueman
 bluez
 bluez-utils
 cava
+cliphist
 cmatrix
 discord
 efibootmgr
@@ -47,6 +48,7 @@ thunderbird
 udiskie
 uwsm
 vim
+vulkan-intel
 vulkan-radeon
 waybar
 wf-recorder
