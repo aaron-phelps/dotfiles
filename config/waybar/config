@@ -165,6 +165,8 @@
   "backlight": {
     "format": "{icon}  {percent}%",
     "format-icons": ["","󰃜", "󰃛", "󰃞","󰃝","󰃟","󰃠"],
+    "on-click": "brightnessctl set +10%",
+    "on-click-right": "cur=$(brightnessctl -m | cut -d',' -f4 | tr -d '%'); new=$((cur - 10)); [ $new -lt 10 ] && new=10; brightnessctl set ${new}%",
     "tooltip-format": "Backlight"
   },
 

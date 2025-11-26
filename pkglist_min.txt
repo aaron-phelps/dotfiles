@@ -4,6 +4,7 @@ base-devel
 blueman
 bluez
 bluez-utils
+brightnessctl
 cava
 cliphist
 cmatrix
