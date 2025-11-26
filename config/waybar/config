@@ -81,14 +81,14 @@
   },
 
   "custom/gpu": {
-    "exec": "if command -v nvidia-smi &>/dev/null && nvidia-smi &>/dev/null 2>&1; then nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits | awk '{usage=$1; bars=int(usage/20); for(i=0;i<bars;i++)printf \"▰\"; for(i=0;i<5-bars;i++)printf \"▱\"; printf \" %d%%\", usage}'; else gpu_card=$(find /sys/class/drm/card*/device/gpu_busy_percent 2>/dev/null | head -1 | xargs dirname); usage=$(cat $gpu_card/gpu_busy_percent 2>/dev/null || echo 0); bars=$((usage/20)); for((i=0;i<bars;i++)); do printf '▰'; done; for((i=0;i<5-bars;i++)); do printf '▱'; done; printf ' %d%%' $usage; fi",
+    "exec": "if command -v nvidia-smi &>/dev/null && nvidia-smi &>/dev/null 2>&1; then nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits | awk '{usage=$1; bars=int(usage/20); for(i=0;i<bars;i++)printf \"▰\"; for(i=0;i<5-bars;i++)printf \"▱\"; printf \" %d%%\", usage}'; elif gpu_card=$(dirname $(find /sys/class/drm/card*/device/gpu_busy_percent 2>/dev/null | head -1) 2>/dev/null); then usage=$(cat $gpu_card/gpu_busy_percent 2>/dev/null || echo 0); bars=$((usage/20)); for((i=0;i<bars;i++)); do printf '▰'; done; for((i=0;i<5-bars;i++)); do printf '▱'; done; printf ' %d%%' $usage; fi",
     "interval": 2,
     "format": "{}",
     "tooltip-format": "GPU"
   },
 
   "custom/gpu-temp": {
-    "exec": "if command -v nvidia-smi &>/dev/null && nvidia-smi &>/dev/null 2>&1; then nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits | awk '{temp_f=int(($1*9/5)+32); print temp_f\"°F\"}'; else gpu_hwmon=$(grep -l 'amdgpu' /sys/class/hwmon/hwmon*/name 2>/dev/null | head -1 | xargs dirname); temp_c=$(cat $gpu_hwmon/temp1_input 2>/dev/null | awk '{print int($1/1000)}'); temp_f=$(( (temp_c * 9/5) + 32 )); echo \"${temp_f}°F\"; fi",
+    "exec": "if command -v nvidia-smi &>/dev/null && nvidia-smi &>/dev/null 2>&1; then nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits | awk '{temp_f=int(($1*9/5)+32); print temp_f\"°F\"}'; elif gpu_hwmon=$(dirname $(grep -l 'amdgpu' /sys/class/hwmon/hwmon*/name 2>/dev/null | head -1) 2>/dev/null); then temp_c=$(cat $gpu_hwmon/temp1_input 2>/dev/null | awk '{print int($1/1000)}'); temp_f=$(( (temp_c * 9/5) + 32 )); echo \"${temp_f}°F\"; elif gpu_hwmon=$(dirname $(grep -l 'i915' /sys/class/hwmon/hwmon*/name 2>/dev/null | head -1) 2>/dev/null); then temp_c=$(cat $gpu_hwmon/temp1_input 2>/dev/null | awk '{print int($1/1000)}'); temp_f=$(( (temp_c * 9/5) + 32 )); echo \"${temp_f}°F\"; fi",
     "interval": 2,
     "format": "{}",
     "tooltip-format": "GPU Temp"
