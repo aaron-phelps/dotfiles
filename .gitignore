@@ -13,3 +13,7 @@ config/gnome-keyring/
 # Session files
 config/fish/fish_variables
 config/dconf/
+
+#config files relevant to setup
+config/hypr/organized/monitor.conf
+config/hypr/organized/monitor.conf.bkp
