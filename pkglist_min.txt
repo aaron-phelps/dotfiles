@@ -28,6 +28,7 @@ linux
 linux-firmware
 mpv
 nano
+noto-fonts-emoji
 openssh
 pipewire
 pipewire-alsa
