@@ -30,6 +30,8 @@
   "modules-center": ["clock"],
 
   "modules-right": [
+
+    "custom/separator",
     "cpu",
     "custom/cpu-temp",
     "custom/separator",
@@ -38,11 +40,11 @@
     "custom/gpu",
     "custom/gpu-temp",
     "custom/separator",
-    "custom/network",
-    "custom/separator",
     "backlight",
     "custom/separator",
     "battery",
+    "custom/separator",
+    "custom/network",
     "custom/separator",
     "custom/notification",
     "custom/separator",
@@ -172,11 +174,11 @@
       "warning": 30,
       "critical": 15
     },
-    "format": "{icon} {capacity}%",
-    "format-full": "{icon} {capacity}%",
-    "format-charging": " {capacity}%",
-    "format-plugged": " {capacity}%",
-    "format-alt": "{icon} {time}",
+    "format": "{icon}   {capacity}%",
+    "format-full": "{icon}   {capacity}%",
+    "format-charging": "   {capacity}%",
+    "format-plugged": "   {capacity}%",
+    "format-alt": "{icon}   {time}",
     "format-icons": ["", "", "", "", ""]
   },
 
