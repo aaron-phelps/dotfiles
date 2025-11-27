@@ -257,9 +257,22 @@ add_item() {
     # Copy to repo
     echo "Copying to repo..."
     if [ -d "$source_path" ]; then
-        # Directory copy
+        # Directory copy with exclusion support
         if [ -f "$EXCLUDE_FILE" ]; then
-            rsync -a --exclude-from=<(grep -v '^#' "$EXCLUDE_FILE" | grep -v '^$' | sed "s|^\.config/$(basename "$normalized_path")/||") "$source_path/" "$repo_path/"
+            # Build rsync exclude patterns relative to the source being copied
+            # e.g., if copying .config/hypr and pattern is .config/hypr/organized/monitor.*
+            # we need to pass organized/monitor.* to rsync
+            local rsync_excludes=()
+            while IFS= read -r pattern || [ -n "$pattern" ]; do
+                [[ "$pattern" =~ ^#.*$ || -z "$pattern" ]] && continue
+                # Check if pattern starts with the normalized path we're copying
+                if [[ "$pattern" == "$normalized_path"/* ]]; then
+                    # Strip the prefix to make it relative to source_path
+                    local relative_pattern="${pattern#$normalized_path/}"
+                    rsync_excludes+=("--exclude=$relative_pattern")
+                fi
+            done < "$EXCLUDE_FILE"
+            rsync -a "${rsync_excludes[@]}" "$source_path/" "$repo_path/"
         else
             cp -rT "$source_path" "$repo_path"
         fi
