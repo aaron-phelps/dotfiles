@@ -21,7 +21,8 @@ fi
 # Check if it's wifi or ethernet
 if [ -d "/sys/class/net/$DEVICE/wireless" ]; then
     # WiFi
-    ESSID=$(iw dev "$DEVICE" info | grep ssid | awk '{print $2}')
+    ESSID=$(iw dev "$DEVICE" info | grep ssid | sed 's/.*ssid //')
+    ESSID=$(echo "$ESSID" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
     # Get signal strength from /proc/net/wireless
     SIGNAL=$(awk -v dev="$DEVICE" '$1 == dev":" {print int($3)}' /proc/net/wireless 2>/dev/null || echo "0")
     # Convert dBm to percentage (rough approximation: -100 dBm = 0%, -50 dBm = 100%)

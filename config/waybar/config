@@ -22,6 +22,8 @@
     "custom/separator",
     "pulseaudio",
     "custom/separator",
+    "bluetooth",
+    "custom/separator",
     "privacy",
     "custom/separator",
     "custom/recording"
