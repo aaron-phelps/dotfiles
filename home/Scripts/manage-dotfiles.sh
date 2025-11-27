@@ -19,7 +19,8 @@ usage() {
     echo ""
     echo "Path can be:"
     echo "  - Relative to home: Scripts, .bashrc, Documents/notes"
-    echo "  - Or .config items: .config/waybar (or just waybar)"
+    echo "  - .config items: .config/waybar (or just waybar)"
+    echo "  - System files: /etc/sddm.conf (requires sudo)"
     echo ""
     echo "Examples:"
     echo "  $0 add Scripts"
@@ -27,11 +28,18 @@ usage() {
     echo "  $0 add waybar              # Assumes .config/waybar"
     echo "  $0 add .config/fish"
     echo "  $0 add Documents/notes"
+    echo "  $0 add /etc/sddm.conf      # System file (requires sudo)"
     echo "  $0 remove Scripts"
     echo "  $0 list"
     echo ""
     echo "Exclusions defined in: ~/dotfiles/dotfile_exclude.txt"
     exit 1
+}
+
+# Check if path is a system path (starts with /)
+is_system_path() {
+    local path="$1"
+    [[ "$path" =~ ^/ ]]
 }
 
 # Check if path matches an excluded pattern
@@ -58,8 +66,15 @@ is_excluded() {
 }
 
 # Normalize path: convert bare config names to .config/name
+# System paths (starting with /) are returned as-is
 normalize_path() {
     local input_path="$1"
+
+    # System paths stay as-is
+    if is_system_path "$input_path"; then
+        echo "$input_path"
+        return
+    fi
 
     # If path doesn't contain / and doesn't start with ., assume it's a .config item
     if [[ ! "$input_path" =~ / ]] && [[ ! "$input_path" =~ ^\. ]]; then
@@ -76,12 +91,26 @@ path_to_repo() {
     # Remove leading ./ if present
     normalized_path="${normalized_path#./}"
 
+    # System paths go in system/ directory (preserve full path structure)
+    if is_system_path "$normalized_path"; then
+        echo "system${normalized_path}"
     # .config items go in config/ directory (without the leading dot)
-    if [[ "$normalized_path" =~ ^\.config/ ]]; then
+    elif [[ "$normalized_path" =~ ^\.config/ ]]; then
         echo "config/${normalized_path#.config/}"
     else
         # Everything else goes in home/ directory
         echo "home/$normalized_path"
+    fi
+}
+
+# Get the actual source path (handles both home and system paths)
+get_source_path() {
+    local normalized_path="$1"
+
+    if is_system_path "$normalized_path"; then
+        echo "$normalized_path"
+    else
+        echo "$HOME_DIR/$normalized_path"
     fi
 }
 
@@ -98,11 +127,18 @@ list_tracked() {
     # List other home items
     if [ -d "$DOTFILES_DIR/home" ]; then
         echo ""
-        echo -e "${YELLOW}Other items:${NC}"
+        echo -e "${YELLOW}Other home items:${NC}"
         find "$DOTFILES_DIR/home" -maxdepth 2 -mindepth 1 -printf "  %P\n" | sort
     fi
 
-    if [ ! -d "$DOTFILES_DIR/config" ] && [ ! -d "$DOTFILES_DIR/home" ]; then
+    # List system items
+    if [ -d "$DOTFILES_DIR/system" ]; then
+        echo ""
+        echo -e "${YELLOW}System items:${NC}"
+        find "$DOTFILES_DIR/system" -type f -printf "  /%P\n" | sort
+    fi
+
+    if [ ! -d "$DOTFILES_DIR/config" ] && [ ! -d "$DOTFILES_DIR/home" ] && [ ! -d "$DOTFILES_DIR/system" ]; then
         echo "No items tracked yet"
     fi
 
@@ -127,6 +163,7 @@ add_item() {
 
     # Normalize the path
     local normalized_path=$(normalize_path "$input_path")
+    local is_system=$(is_system_path "$normalized_path" && echo "yes" || echo "no")
 
     # Check if excluded
     if is_excluded "$normalized_path"; then
@@ -134,8 +171,15 @@ add_item() {
         return 0
     fi
 
-    local source_path="$HOME_DIR/$normalized_path"
+    local source_path=$(get_source_path "$normalized_path")
     local repo_path="$DOTFILES_DIR/$(path_to_repo "$normalized_path")"
+
+    # For system files, we need sudo
+    local SUDO=""
+    if [ "$is_system" = "yes" ]; then
+        SUDO="sudo"
+        echo -e "${YELLOW}System file detected - sudo may be required${NC}"
+    fi
 
     # Check if already a symlink pointing to the right place
     if [ -L "$source_path" ]; then
@@ -158,12 +202,12 @@ add_item() {
         # If source exists and is not a symlink, back it up
         if [ -e "$source_path" ]; then
             echo "Creating backup of existing file/folder..."
-            mv "$source_path" "$source_path.backup"
+            $SUDO mv "$source_path" "$source_path.backup"
         fi
 
         # Create symlink
         echo "Creating symlink..."
-        ln -sf "$repo_path" "$source_path"
+        $SUDO ln -sf "$repo_path" "$source_path"
 
         echo -e "${GREEN}✓ Successfully reconnected $normalized_path${NC}"
         echo "  Source: $source_path"
@@ -182,24 +226,33 @@ add_item() {
     # Create parent directory in repo
     mkdir -p "$(dirname "$repo_path")"
 
-    # Copy to repo - use -T flag to avoid nesting
+    # Copy to repo
     echo "Copying to repo..."
-    if [ -f "$EXCLUDE_FILE" ]; then
-        # Use exclude file with rsync
-        rsync -a --exclude-from=<(grep -v '^#' "$EXCLUDE_FILE" | grep -v '^$' | sed "s|^\.config/$(basename "$normalized_path")/||") "$source_path/" "$repo_path/"
+    if [ -d "$source_path" ]; then
+        # Directory copy
+        if [ -f "$EXCLUDE_FILE" ]; then
+            rsync -a --exclude-from=<(grep -v '^#' "$EXCLUDE_FILE" | grep -v '^$' | sed "s|^\.config/$(basename "$normalized_path")/||") "$source_path/" "$repo_path/"
+        else
+            cp -rT "$source_path" "$repo_path"
+        fi
     else
-        cp -rT "$source_path" "$repo_path"
+        # File copy (use sudo for system files to read)
+        $SUDO cp "$source_path" "$repo_path"
+        # Fix ownership in repo (should be user-owned)
+        if [ "$is_system" = "yes" ]; then
+            sudo chown "$USER:$USER" "$repo_path"
+        fi
     fi
 
     # Backup original
     echo "Creating backup..."
-    mv "$source_path" "$source_path.backup"
+    $SUDO mv "$source_path" "$source_path.backup"
 
     # Create symlink
     echo "Creating symlink..."
-    ln -sf "$repo_path" "$source_path"
+    $SUDO ln -sf "$repo_path" "$source_path"
 
-    # Git operations (use -C to avoid changing directory)
+    # Git operations
     git -C "$DOTFILES_DIR" add "$(path_to_repo "$normalized_path")"
     git -C "$DOTFILES_DIR" commit -m "Add $normalized_path" || true
 
@@ -223,8 +276,16 @@ remove_item() {
 
     # Normalize the path
     local normalized_path=$(normalize_path "$input_path")
-    local source_path="$HOME_DIR/$normalized_path"
+    local is_system=$(is_system_path "$normalized_path" && echo "yes" || echo "no")
+    local source_path=$(get_source_path "$normalized_path")
     local repo_path="$DOTFILES_DIR/$(path_to_repo "$normalized_path")"
+
+    # For system files, we need sudo
+    local SUDO=""
+    if [ "$is_system" = "yes" ]; then
+        SUDO="sudo"
+        echo -e "${YELLOW}System file detected - sudo may be required${NC}"
+    fi
 
     # Check if it's a symlink
     if [ ! -L "$source_path" ]; then
@@ -236,19 +297,19 @@ remove_item() {
 
     # Remove symlink
     echo "Removing symlink..."
-    rm "$source_path"
+    $SUDO rm "$source_path"
 
     # Restore from backup if it exists
     if [ -e "$source_path.backup" ]; then
         echo "Restoring from backup..."
-        mv "$source_path.backup" "$source_path"
+        $SUDO mv "$source_path.backup" "$source_path"
     else
         # Copy from repo
         echo "Copying from repo..."
-        cp -r "$repo_path" "$source_path"
+        $SUDO cp -r "$repo_path" "$source_path"
     fi
 
-    # Git operations (use -C to avoid changing directory)
+    # Git operations
     git -C "$DOTFILES_DIR" rm -r "$(path_to_repo "$normalized_path")"
     git -C "$DOTFILES_DIR" commit -m "Remove $normalized_path from tracking" || true
 
