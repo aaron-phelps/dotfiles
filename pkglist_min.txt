@@ -41,6 +41,7 @@ pulsemixer
 qt5-wayland
 qt6-wayland
 rofi
+rsync
 sddm
 slurp
 smartmontools
