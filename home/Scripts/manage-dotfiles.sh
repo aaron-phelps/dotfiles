@@ -142,12 +142,12 @@ add_item() {
         local link_target=$(readlink -f "$source_path")
         if [ "$link_target" = "$repo_path" ]; then
             echo -e "${GREEN}✓ $normalized_path is already correctly linked${NC}"
-            exit 0
+            return 0
         else
             echo -e "${YELLOW}Warning: $normalized_path is a symlink to a different location${NC}"
             echo "  Current: $link_target"
             echo "  Expected: $repo_path"
-            exit 1
+            return 1
         fi
     fi
 
@@ -168,13 +168,13 @@ add_item() {
         echo -e "${GREEN}✓ Successfully reconnected $normalized_path${NC}"
         echo "  Source: $source_path"
         echo "  Repo:   $repo_path"
-        exit 0
+        return 0
     fi
 
     # New item - check if source exists
     if [ ! -e "$source_path" ]; then
         echo -e "${RED}Error: $source_path does not exist${NC}"
-        exit 1
+        return 1
     fi
 
     echo -e "${GREEN}Adding $normalized_path to dotfiles...${NC}"
@@ -210,6 +210,8 @@ add_item() {
     echo ""
     echo "To push to GitHub, run:"
     echo "  cd $DOTFILES_DIR && git push"
+
+    return 0
 }
 
 remove_item() {
@@ -228,7 +230,7 @@ remove_item() {
     # Check if it's a symlink
     if [ ! -L "$source_path" ]; then
         echo -e "${RED}Error: $normalized_path is not a symlink (not tracked)${NC}"
-        exit 1
+        return 1
     fi
 
     echo -e "${YELLOW}Removing $normalized_path from dotfiles...${NC}"
@@ -256,6 +258,8 @@ remove_item() {
     echo ""
     echo "To push to GitHub, run:"
     echo "  cd $DOTFILES_DIR && git push"
+
+    return 0
 }
 
 # Main script logic

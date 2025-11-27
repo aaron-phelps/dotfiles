@@ -12,6 +12,18 @@ YELLOW=$(printf '\033[1;33m')
 BLUE=$(printf '\033[0;34m')
 NC=$(printf '\033[0m')
 
+# Status tracking
+STATUS_YAY="pending"
+STATUS_MULTILIB="pending"
+STATUS_OFFICIAL_PKGS="pending"
+STATUS_AUR_PKGS="pending"
+STATUS_SDDM="pending"
+STATUS_DIRECTORIES="pending"
+STATUS_WALLPAPER="pending"
+STATUS_CONFIG="pending"
+STATUS_GIT="pending"
+STATUS_DOTFILES="pending"
+
 # Function to print colored output
 print_status() {
     echo -e "${BLUE}==>${NC} $1"
@@ -35,6 +47,9 @@ if [[ $EUID -eq 0 ]]; then
    exit 1
 fi
 
+# Make sure all Scripts are executable and owned by user for modifications as needed
+sudo chown -R $USER:$USER Scripts/ && chmod -R +x Scripts/
+
 # Step 0: Install yay if not present
 print_status "Step 0: Checking for yay AUR helper..."
 if ! command -v yay &> /dev/null; then
@@ -54,14 +69,17 @@ if ! command -v yay &> /dev/null; then
     cd ~
 
     print_success "yay installed successfully"
+    STATUS_YAY="installed"
 else
     print_success "yay is already installed"
+    STATUS_YAY="already installed"
 fi
 
 # Step 1: Enable multilib repository
 print_status "Step 1: Enabling multilib repository..."
 if grep -q "^\[multilib\]" /etc/pacman.conf; then
     print_success "multilib is already enabled"
+    STATUS_MULTILIB="already enabled"
 else
     print_warning "Enabling multilib repository..."
     sudo sed -i '/^#\[multilib\]/,/^#Include = \/etc\/pacman.d\/mirrorlist/ s/^#//' /etc/pacman.conf
@@ -73,6 +91,7 @@ else
 
     sudo pacman -Sy
     print_success "multilib repository enabled and database synchronized"
+    STATUS_MULTILIB="enabled"
 fi
 
 # Step 2: Install packages from pkglist_min.txt
@@ -88,8 +107,10 @@ if [ ${#DESIRED_PACKAGES[@]} -gt 0 ]; then
     print_status "Installing ${#DESIRED_PACKAGES[@]} packages..."
     sudo pacman -S --needed --noconfirm "${DESIRED_PACKAGES[@]}" || print_warning "Some packages may have failed to install"
     print_success "Package installation complete"
+    STATUS_OFFICIAL_PKGS="synchronized (${#DESIRED_PACKAGES[@]} packages)"
 else
     print_warning "No packages found in pkglist_min.txt"
+    STATUS_OFFICIAL_PKGS="skipped (empty list)"
 fi
 
 # Step 3: Remove packages not in pkglist_min.txt
@@ -155,8 +176,10 @@ if [ ${#DESIRED_AUR_PACKAGES[@]} -gt 0 ]; then
     print_status "Installing ${#DESIRED_AUR_PACKAGES[@]} AUR packages..."
     yay -S --needed --noconfirm "${DESIRED_AUR_PACKAGES[@]}" || print_warning "Some AUR packages may have failed to install"
     print_success "AUR package installation complete"
+    STATUS_AUR_PKGS="synchronized (${#DESIRED_AUR_PACKAGES[@]} packages)"
 else
     print_warning "No AUR packages found in aur_pkglist_min.txt"
+    STATUS_AUR_PKGS="skipped (empty list)"
 fi
 
 # Remove AUR packages not in aur_pkglist_min.txt
@@ -217,8 +240,10 @@ if command -v sddm &> /dev/null; then
     # Enable SDDM
     sudo systemctl enable sddm.service
     print_success "SDDM configured and enabled"
+    STATUS_SDDM="configured and enabled"
 else
     print_warning "SDDM not installed, skipping display manager configuration"
+    STATUS_SDDM="skipped (not installed)"
 fi
 
 # Step 6: Create directories
@@ -226,20 +251,24 @@ print_status "Step 6: Creating directories..."
 mkdir -p ~/Pictures/Wallpapers
 mkdir -p ~/Videos/Recordings
 print_success "Directories created: ~/Pictures/Wallpapers and ~/Videos/Recordings"
+STATUS_DIRECTORIES="created"
 
 # Step 7: Move wallpaper
 print_status "Step 7: Moving default wallpaper..."
 if [ -f ~/dotfiles/wallpaper_default.jpg ]; then
     cp -f ~/dotfiles/wallpaper_default.jpg ~/Pictures/Wallpapers/
     print_success "Wallpaper copied to ~/Pictures/Wallpapers/"
+    STATUS_WALLPAPER="copied"
 else
     print_warning "Wallpaper file ~/dotfiles/wallpaper_default.jpg not found"
+    STATUS_WALLPAPER="skipped (not found)"
 fi
 
 # Step 8: Copy config files
 print_status "Step 8: Copying config files from ~/dotfiles/config/ to ~/.config/..."
 if [ ! -d ~/dotfiles/config ]; then
     print_warning "Directory ~/dotfiles/config/ not found, skipping config deployment"
+    STATUS_CONFIG="skipped (not found)"
 else
     # Create .config directory if it doesn't exist
     mkdir -p ~/.config
@@ -259,8 +288,10 @@ else
         # List what was copied
         CONFIG_COUNT=$(find ~/dotfiles/config/ -maxdepth 1 -mindepth 1 | wc -l)
         print_status "Deployed $CONFIG_COUNT configuration directories/files"
+        STATUS_CONFIG="deployed ($CONFIG_COUNT items)"
     else
         print_warning "No config files found in ~/dotfiles/config/"
+        STATUS_CONFIG="skipped (empty)"
     fi
 fi
 
@@ -272,29 +303,48 @@ yay -Sc --noconfirm
 print_status "Step 9: Configuring Git..."
 
 SETUP_GIT="$HOME/Scripts/setup_git.sh"
+DOTFILE_MANAGE="$HOME/Scripts/dotfile_manage.sh"
+GIT_SETUP_SUCCESS=false
 
 if [ ! -f "$SETUP_GIT" ]; then
     print_warning "$SETUP_GIT not found, skipping Git configuration"
+    STATUS_GIT="skipped (script not found)"
 elif ! command -v gh &> /dev/null; then
     print_warning "GitHub CLI (gh) not installed. Add 'github-cli' to your package list."
+    STATUS_GIT="skipped (gh not installed)"
 elif [ -n "$DISPLAY" ] || [ -n "$WAYLAND_DISPLAY" ]; then
-    "$SETUP_GIT"
+    if "$SETUP_GIT"; then
+        GIT_SETUP_SUCCESS=true
+        print_success "Git configuration complete"
+        STATUS_GIT="configured"
+    else
+        print_warning "Git setup encountered an issue"
+        STATUS_GIT="failed"
+    fi
 else
-    print_warning "No display available. After reboot, run:"
+    print_warning "No display available for Git authentication."
+    print_status "After reboot with a display, run:"
     echo ""
     echo "  ~/Scripts/setup_git.sh"
     echo ""
+    print_status "This will complete both Git setup and dotfile linking."
+    STATUS_GIT="pending (no display)"
 fi
 
 # Step 10: Create dotfile symlinks
 print_status "Step 10: Creating dotfile symlinks from ~/dotfiles/dotfile_manage_add.txt..."
 DOTFILE_LIST="$HOME/dotfiles/dotfile_manage_add.txt"
-DOTFILE_MANAGE="$HOME/Scripts/dotfile_manage.sh"
 
 if [ ! -f "$DOTFILE_LIST" ]; then
     print_warning "File $DOTFILE_LIST not found, skipping dotfile linking"
+    STATUS_DOTFILES="skipped (list not found)"
 elif [ ! -f "$DOTFILE_MANAGE" ]; then
     print_warning "File $DOTFILE_MANAGE not found, skipping dotfile linking"
+    STATUS_DOTFILES="skipped (script not found)"
+elif [ "$GIT_SETUP_SUCCESS" = false ] && [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
+    # Git setup didn't run due to no display, skip dotfile linking too (setup_git.sh will handle it)
+    print_warning "Skipping dotfile linking (will run via setup_git.sh after reboot)"
+    STATUS_DOTFILES="pending (via setup_git.sh)"
 else
     # Ensure manage script is executable
     chmod +x "$DOTFILE_MANAGE"
@@ -304,28 +354,47 @@ else
 
     if [ ${#DOTFILE_ITEMS[@]} -gt 0 ]; then
         print_status "Linking ${#DOTFILE_ITEMS[@]} dotfile items..."
+        DOTFILE_SUCCESS=0
+        DOTFILE_FAILED=0
+        FAILED_ITEMS=()
         for item in "${DOTFILE_ITEMS[@]}"; do
             print_status "  Adding: $item"
-            "$DOTFILE_MANAGE" add "$item" || print_warning "Failed to add $item"
+            if "$DOTFILE_MANAGE" add "$item"; then
+                ((DOTFILE_SUCCESS++))
+            else
+                print_warning "Failed to add $item"
+                ((DOTFILE_FAILED++))
+                FAILED_ITEMS+=("$item")
+            fi
         done
         print_success "Dotfile linking complete"
+        if [ $DOTFILE_FAILED -eq 0 ]; then
+            STATUS_DOTFILES="linked ($DOTFILE_SUCCESS items)"
+        else
+            STATUS_DOTFILES="partial ($DOTFILE_SUCCESS linked, $DOTFILE_FAILED failed)"
+            print_warning "To retry failed items, run:"
+            for failed_item in "${FAILED_ITEMS[@]}"; do
+                echo "  ~/Scripts/dotfile_manage.sh add \"$failed_item\""
+            done
+        fi
     else
         print_warning "No items found in $DOTFILE_LIST"
+        STATUS_DOTFILES="skipped (empty list)"
     fi
 fi
 
 print_success "System setup complete!"
 echo
 print_status "Summary:"
-echo "  • yay AUR helper: installed"
-echo "  • multilib repository: enabled"
-echo "  • Official packages: synchronized"
-echo "  • AUR packages: synchronized"
-echo "  • SDDM: configured and enabled"
-echo "  • Directories: created"
-echo "  • Wallpaper: moved"
-echo "  • Config files: deployed"
-echo "  • Git: configured"
-echo "  • Dotfile symlinks: created"
+echo "  • yay AUR helper: $STATUS_YAY"
+echo "  • multilib repository: $STATUS_MULTILIB"
+echo "  • Official packages: $STATUS_OFFICIAL_PKGS"
+echo "  • AUR packages: $STATUS_AUR_PKGS"
+echo "  • SDDM: $STATUS_SDDM"
+echo "  • Directories: $STATUS_DIRECTORIES"
+echo "  • Wallpaper: $STATUS_WALLPAPER"
+echo "  • Config files: $STATUS_CONFIG"
+echo "  • Git: $STATUS_GIT"
+echo "  • Dotfile symlinks: $STATUS_DOTFILES"
 echo
 print_warning "Please reboot your system for all changes to take effect."
