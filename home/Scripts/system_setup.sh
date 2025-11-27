@@ -387,7 +387,7 @@ fi
 # Step 11: Configure Hyprland monitors
 print_status "Step 11: Configuring Hyprland monitors..."
 
-MONITOR_SCRIPT="$HOME/Scripts/setup_monitor.sh"
+MONITOR_SCRIPT="$HOME/Scripts/update-hyprland-monitors.sh"
 
 if [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
     print_warning "No display available for monitor configuration."
