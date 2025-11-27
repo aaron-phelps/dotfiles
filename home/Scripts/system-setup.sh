@@ -391,10 +391,10 @@ else
         for item in "${DOTFILE_ITEMS[@]}"; do
             print_status "  Adding: $item"
             if "$DOTFILE_MANAGE" add "$item"; then
-                ((DOTFILE_SUCCESS++))
+                DOTFILE_SUCCESS=$((DOTFILE_SUCCESS + 1))
             else
                 print_warning "Failed to add $item"
-                ((DOTFILE_FAILED++))
+                DOTFILE_FAILED=$((DOTFILE_FAILED + 1))
                 FAILED_ITEMS+=("$item")
             fi
         done
