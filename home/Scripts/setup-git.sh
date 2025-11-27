@@ -2,6 +2,9 @@
 # Git/GitHub credential setup script
 # Run after reboot if no display was available during initial setup
 # Also handles dotfile linking if called standalone
+
+SECRETS_REPO="https://github.com/aaron-phelps/secret.git"
+
 set -e
 RED=$(printf '\033[0;31m')
 GREEN=$(printf '\033[0;32m')
@@ -12,7 +15,6 @@ print_status() { echo -e "${BLUE}==>${NC} $1"; }
 print_success() { echo -e "${GREEN}✓${NC} $1"; }
 print_warning() { echo -e "${YELLOW}⚠${NC} $1"; }
 print_error() { echo -e "${RED}✗${NC} $1"; }
-SECRETS_REPO="https://github.com/aaron-phelps/secret.git"
 SECRETS_DIR="$HOME/.secrets"
 DOTFILE_MANAGE="$HOME/Scripts/manage-dotfiles.sh"
 DOTFILE_LIST="$HOME/dotfiles/dotfile_manage_add.txt"
