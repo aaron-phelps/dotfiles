@@ -49,7 +49,9 @@ if [[ $EUID -eq 0 ]]; then
 fi
 
 # Make sure all Scripts are executable and owned by user for modifications as needed
-sudo chown -R $USER:$USER Scripts/ && chmod -R +x Scripts/
+sudo chattr -R -i ~/Scripts/ 2>/dev/null || true
+sudo chown -R $USER:$USER ~/Scripts/
+chmod -R +x ~/Scripts/
 
 # Step 0: Install yay if not present
 print_status "Step 0: Checking for yay AUR helper..."
