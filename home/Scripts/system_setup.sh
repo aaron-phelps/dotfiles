@@ -245,9 +245,15 @@ else
     mkdir -p ~/.config
 
     # Copy all contents from dotfiles/config to .config
-    # Using cp with recursive and force options to ensure overwrites
+    # Using rsync with exclude file if it exists
     if [ "$(ls -A ~/dotfiles/config)" ]; then
-        cp -rf ~/dotfiles/config/* ~/.config/
+        EXCLUDE_FILE="$HOME/dotfiles/dotfile_exclude.txt"
+        if [ -f "$EXCLUDE_FILE" ]; then
+            # Convert .config/path patterns to just path for rsync
+            rsync -a --exclude-from=<(grep -v '^#' "$EXCLUDE_FILE" | grep -v '^$' | sed 's|^\.config/||') ~/dotfiles/config/ ~/.config/
+        else
+            rsync -a ~/dotfiles/config/ ~/.config/
+        fi
         print_success "Config files copied to ~/.config/"
 
         # List what was copied

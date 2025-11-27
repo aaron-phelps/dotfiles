@@ -1,0 +1,6 @@
+# Dotfile exclusion patterns
+# One pattern per line, supports glob patterns
+# Paths are relative to home directory (use .config/app/file format)
+
+# Monitor-specific configs (machine-dependent)
+.config/hypr/organized/monitor.*

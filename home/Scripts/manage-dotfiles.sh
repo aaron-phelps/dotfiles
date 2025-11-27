@@ -1,6 +1,7 @@
 #!/bin/bash
 DOTFILES_DIR="$HOME/dotfiles"
 HOME_DIR="$HOME"
+EXCLUDE_FILE="$DOTFILES_DIR/dotfile_exclude.txt"
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -28,7 +29,32 @@ usage() {
     echo "  $0 add Documents/notes"
     echo "  $0 remove Scripts"
     echo "  $0 list"
+    echo ""
+    echo "Exclusions defined in: ~/dotfiles/dotfile_exclude.txt"
     exit 1
+}
+
+# Check if path matches an excluded pattern
+is_excluded() {
+    local check_path="$1"
+
+    # Return false if exclude file doesn't exist
+    if [ ! -f "$EXCLUDE_FILE" ]; then
+        return 1
+    fi
+
+    # Read patterns from file (skip comments and blank lines)
+    while IFS= read -r pattern || [ -n "$pattern" ]; do
+        # Skip comments and blank lines
+        [[ "$pattern" =~ ^#.*$ || -z "$pattern" ]] && continue
+
+        # Use bash pattern matching
+        if [[ "$check_path" == $pattern ]]; then
+            return 0
+        fi
+    done < "$EXCLUDE_FILE"
+
+    return 1
 }
 
 # Normalize path: convert bare config names to .config/name
@@ -79,6 +105,16 @@ list_tracked() {
     if [ ! -d "$DOTFILES_DIR/config" ] && [ ! -d "$DOTFILES_DIR/home" ]; then
         echo "No items tracked yet"
     fi
+
+    echo ""
+    echo -e "${YELLOW}Excluded patterns (from dotfile_exclude.txt):${NC}"
+    if [ -f "$EXCLUDE_FILE" ]; then
+        grep -v '^#' "$EXCLUDE_FILE" | grep -v '^$' | while read -r pattern; do
+            echo "  - $pattern"
+        done
+    else
+        echo "  (no exclude file found)"
+    fi
 }
 
 add_item() {
@@ -91,6 +127,13 @@ add_item() {
 
     # Normalize the path
     local normalized_path=$(normalize_path "$input_path")
+
+    # Check if excluded
+    if is_excluded "$normalized_path"; then
+        echo -e "${YELLOW}⚠ Skipping $normalized_path (excluded pattern)${NC}"
+        return 0
+    fi
+
     local source_path="$HOME_DIR/$normalized_path"
     local repo_path="$DOTFILES_DIR/$(path_to_repo "$normalized_path")"
 
@@ -141,7 +184,12 @@ add_item() {
 
     # Copy to repo - use -T flag to avoid nesting
     echo "Copying to repo..."
-    cp -rT "$source_path" "$repo_path"
+    if [ -f "$EXCLUDE_FILE" ]; then
+        # Use exclude file with rsync
+        rsync -a --exclude-from=<(grep -v '^#' "$EXCLUDE_FILE" | grep -v '^$' | sed "s|^\.config/$(basename "$normalized_path")/||") "$source_path/" "$repo_path/"
+    else
+        cp -rT "$source_path" "$repo_path"
+    fi
 
     # Backup original
     echo "Creating backup..."
