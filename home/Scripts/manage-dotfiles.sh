@@ -199,10 +199,9 @@ add_item() {
     echo "Creating symlink..."
     ln -sf "$repo_path" "$source_path"
 
-    # Git operations
-    cd "$DOTFILES_DIR"
-    git add "$(path_to_repo "$normalized_path")"
-    git commit -m "Add $normalized_path"
+    # Git operations (use -C to avoid changing directory)
+    git -C "$DOTFILES_DIR" add "$(path_to_repo "$normalized_path")"
+    git -C "$DOTFILES_DIR" commit -m "Add $normalized_path" || true
 
     echo -e "${GREEN}✓ Successfully added $normalized_path${NC}"
     echo "  Source: $source_path"
@@ -249,10 +248,9 @@ remove_item() {
         cp -r "$repo_path" "$source_path"
     fi
 
-    # Git operations
-    cd "$DOTFILES_DIR"
-    git rm -r "$(path_to_repo "$normalized_path")"
-    git commit -m "Remove $normalized_path from tracking"
+    # Git operations (use -C to avoid changing directory)
+    git -C "$DOTFILES_DIR" rm -r "$(path_to_repo "$normalized_path")"
+    git -C "$DOTFILES_DIR" commit -m "Remove $normalized_path from tracking" || true
 
     echo -e "${GREEN}✓ Successfully removed $normalized_path${NC}"
     echo ""
