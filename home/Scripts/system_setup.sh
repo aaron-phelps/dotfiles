@@ -360,7 +360,7 @@ fi
 # Step 10: Create dotfile symlinks
 print_status "Step 10: Creating dotfile symlinks from ~/dotfiles/dotfile_manage_add.txt..."
 DOTFILE_LIST="$HOME/dotfiles/dotfile_manage_add.txt"
-DOTFILE_MANAGE="$HOME/dotfiles/dotfile_manage.sh"
+DOTFILE_MANAGE="$HOME/Scripts/dotfile_manage.sh"
 
 if [ ! -f "$DOTFILE_LIST" ]; then
     print_warning "File $DOTFILE_LIST not found, skipping dotfile linking"
