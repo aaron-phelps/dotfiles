@@ -18,7 +18,7 @@ print_error() { echo -e "${RED}✗${NC} $1"; }
 
 SECRETS_REPO="https://github.com/aaron-phelps/secret.git"
 SECRETS_DIR="$HOME/.secrets"
-DOTFILE_MANAGE="$HOME/Scripts/dotfile_manage.sh"
+DOTFILE_MANAGE="$HOME/Scripts/manage-dotfiles.sh"
 DOTFILE_LIST="$HOME/dotfiles/dotfile_manage_add.txt"
 
 # Check gh
@@ -94,7 +94,7 @@ else
             print_warning "Dotfile linking partial ($DOTFILE_SUCCESS linked, $DOTFILE_FAILED failed)"
             print_warning "To retry failed items, run:"
             for failed_item in "${FAILED_ITEMS[@]}"; do
-                echo "  ~/Scripts/dotfile_manage.sh add \"$failed_item\""
+                echo "  ~/Scripts/manage-dotfiles.sh add \"$failed_item\""
             done
         fi
     else
