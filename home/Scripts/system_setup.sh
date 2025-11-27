@@ -271,90 +271,19 @@ yay -Sc --noconfirm
 # Step 9: Configure Git
 print_status "Step 9: Configuring Git..."
 
-SECRETS_REPO="https://github.com/aaron-phelps/secret.git"
-SECRETS_DIR="$HOME/.secrets"
+SETUP_GIT="$HOME/Scripts/setup_git.sh"
 
-# Check if gh CLI is available
-if ! command -v gh &> /dev/null; then
+if [ ! -f "$SETUP_GIT" ]; then
+    print_warning "$SETUP_GIT not found, skipping Git configuration"
+elif ! command -v gh &> /dev/null; then
     print_warning "GitHub CLI (gh) not installed. Add 'github-cli' to your package list."
-    print_warning "Skipping Git configuration."
+elif [ -n "$DISPLAY" ] || [ -n "$WAYLAND_DISPLAY" ]; then
+    "$SETUP_GIT"
 else
-    # Check if already authenticated
-    if gh auth status &> /dev/null; then
-        print_success "Already authenticated with GitHub"
-        GH_AUTHENTICATED=true
-    else
-        # Check if display is available for browser auth
-        if [ -n "$DISPLAY" ] || [ -n "$WAYLAND_DISPLAY" ]; then
-            print_status "Authenticating with GitHub (will open browser)..."
-            if gh auth login --web --git-protocol https; then
-                GH_AUTHENTICATED=true
-            else
-                print_warning "GitHub authentication failed"
-                GH_AUTHENTICATED=false
-            fi
-        else
-            print_warning "No display available for browser authentication"
-            print_warning "Run the following after rebooting into your desktop:"
-            echo ""
-            echo "  gh auth login --web --git-protocol https"
-            echo "  git config --global credential.helper '!gh auth git-credential'"
-            echo "  git clone $SECRETS_REPO $SECRETS_DIR"
-            echo "  cp $SECRETS_DIR/.git-credentials ~/.git-credentials"
-            echo "  chmod 600 ~/.git-credentials"
-            echo ""
-            GH_AUTHENTICATED=false
-        fi
-    fi
-
-    if [ "$GH_AUTHENTICATED" = true ]; then
-        # Configure git credential helper to use gh
-        git config --global credential.helper "!gh auth git-credential"
-
-        # Set git user info if not already set
-        if ! git config --global user.name &> /dev/null; then
-            read -p "Enter your Git name: " GIT_USERNAME
-            git config --global user.name "$GIT_USERNAME"
-        fi
-
-        if ! git config --global user.email &> /dev/null; then
-            read -p "Enter your Git email: " GIT_EMAIL
-            git config --global user.email "$GIT_EMAIL"
-        fi
-
-        print_success "Git configured:"
-        echo "  Name:  $(git config --global user.name)"
-        echo "  Email: $(git config --global user.email)"
-
-        # Clone secrets repo and copy credentials
-        print_status "Setting up credentials from private repo..."
-        
-        if [ -d "$SECRETS_DIR" ]; then
-            print_status "Updating existing secrets repo..."
-            git -C "$SECRETS_DIR" pull
-        else
-            print_status "Cloning secrets repo..."
-            if git clone "$SECRETS_REPO" "$SECRETS_DIR"; then
-                print_success "Secrets repo cloned"
-            else
-                print_error "Failed to clone secrets repo"
-                print_warning "Manual steps required:"
-                echo "  1. Ensure you have access to $SECRETS_REPO"
-                echo "  2. Run: git clone $SECRETS_REPO $SECRETS_DIR"
-                echo "  3. Copy credentials: cp $SECRETS_DIR/.git-credentials ~/"
-                echo "  4. Set permissions: chmod 600 ~/.git-credentials"
-            fi
-        fi
-
-        # Copy git credentials if secrets repo exists
-        if [ -f "$SECRETS_DIR/.git-credentials" ]; then
-            cp "$SECRETS_DIR/.git-credentials" ~/.git-credentials
-            chmod 600 ~/.git-credentials
-            print_success "Git credentials installed"
-        elif [ -d "$SECRETS_DIR" ]; then
-            print_warning ".git-credentials not found in secrets repo"
-        fi
-    fi
+    print_warning "No display available. After reboot, run:"
+    echo ""
+    echo "  ~/Scripts/setup_git.sh"
+    echo ""
 fi
 
 # Step 10: Create dotfile symlinks
