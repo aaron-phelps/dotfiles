@@ -218,7 +218,6 @@ if [ ${#AUR_TO_REMOVE[@]} -gt 0 ]; then
 else
     print_success "No AUR packages to remove"
 fi
-
 # Step 5: Configure SDDM
 print_status "Step 5: Configuring SDDM display manager..."
 if command -v sddm &> /dev/null; then
@@ -237,6 +236,35 @@ if command -v sddm &> /dev/null; then
     else
         print_warning "~/dotfiles/etc/sddm.conf not found, skipping SDDM config"
     fi
+
+    # Copy SDDM theme from dotfiles if present
+    if [ -d ~/dotfiles/sddm-themes/sugar-dark ]; then
+        print_status "Installing sugar-dark SDDM theme..."
+        sudo cp -r ~/dotfiles/sddm-themes/sugar-dark /usr/share/sddm/themes/
+    fi
+
+    # Set SDDM background image
+    SDDM_BG="$HOME/dotfiles/sddm_background.jpg"
+    SDDM_THEME_DIR="/usr/share/sddm/themes/sugar-dark"
+    if [ -f "$SDDM_BG" ] && [ -d "$SDDM_THEME_DIR" ]; then
+        print_status "Setting SDDM background image..."
+        sudo cp "$SDDM_BG" "$SDDM_THEME_DIR/sddm_background.jpg"
+        sudo sed -i 's|^Background=.*|Background="sddm_background.jpg"|' "$SDDM_THEME_DIR/theme.conf"
+        print_success "SDDM background configured"
+    fi
+
+    # Create custom Hyprland session desktop file
+    print_status "Creating Hyprland session desktop file..."
+    mkdir -p ~/.local/share/wayland-sessions
+    cat > ~/.local/share/wayland-sessions/hyprland.desktop << 'EOF'
+[Desktop Entry]
+Name=Hyprland
+Comment=An intelligent dynamic tiling Wayland compositor
+Exec=Hyprland
+Type=Application
+DesktopNames=Hyprland
+EOF
+    print_success "Hyprland session desktop file created"
 
     # Enable SDDM
     sudo systemctl enable sddm.service
