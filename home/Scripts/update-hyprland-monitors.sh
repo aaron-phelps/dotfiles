@@ -60,18 +60,21 @@ for MON in "${MONITORS[@]}"; do
     MONS_INFO["$MON"]="$WIDTH $HEIGHT $REFRESH"
 done
 
-# 4️⃣ Primary monitor
+# 4️⃣ Primary monitor selection
 echo -e "\nDetected monitors:"
-for MON in "${MONITORS[@]}"; do
+for i in "${!MONITORS[@]}"; do
+    MON="${MONITORS[$i]}"
     INFO=(${MONS_INFO[$MON]})
-    echo "  $MON ${INFO[0]}x${INFO[1]}@${INFO[2]}"
+    echo "  $((i+1))) $MON ${INFO[0]}x${INFO[1]}@${INFO[2]}"
 done
 
-read -rp $'\nEnter the primary monitor: ' PRIMARY_MON
-while [[ ! " ${MONITORS[*]} " =~ " ${PRIMARY_MON} " ]]; do
-    echo "Invalid monitor name. Please enter one of: ${MONITORS[*]}"
-    read -rp "Primary monitor: " PRIMARY_MON
+read -rp $'\nSelect primary monitor [1-'${#MONITORS[@]}']: ' PRIMARY_NUM
+while [[ ! "$PRIMARY_NUM" =~ ^[0-9]+$ ]] || ((PRIMARY_NUM < 1 || PRIMARY_NUM > ${#MONITORS[@]})); do
+    echo "Invalid selection. Enter a number between 1 and ${#MONITORS[@]}"
+    read -rp "Select primary monitor: " PRIMARY_NUM
 done
+PRIMARY_MON="${MONITORS[$((PRIMARY_NUM-1))]}"
+echo "Selected: $PRIMARY_MON"
 
 # 5️⃣ Relative positions
 declare -A MON_X MON_Y REL_POSITIONS
@@ -79,17 +82,24 @@ REL_POSITIONS["$PRIMARY_MON"]="primary"
 MON_X["$PRIMARY_MON"]=0
 MON_Y["$PRIMARY_MON"]=0
 
+POSITIONS=("top-left" "top-center" "top-right" "left-center" "right-center" "bottom-left" "bottom-center" "bottom-right")
+
 for MON in "${MONITORS[@]}"; do
     [[ "$MON" == "$PRIMARY_MON" ]] && continue
 
     echo -e "\nWhere is $MON positioned relative to $PRIMARY_MON?"
-    echo "Options: top-left, top-center, top-right, bottom-left, bottom-center, bottom-right, left-center, right-center"
-    read -rp "Position: " POS
-    while [[ ! "$POS" =~ ^(top-left|top-center|top-right|bottom-left|bottom-center|bottom-right|left-center|right-center)$ ]]; do
-        echo "Invalid input. Please enter one of the valid options."
-        read -rp "Position: " POS
+    for i in "${!POSITIONS[@]}"; do
+        echo "  $((i+1))) ${POSITIONS[$i]}"
     done
+
+    read -rp "Select position [1-8]: " POS_NUM
+    while [[ ! "$POS_NUM" =~ ^[0-9]+$ ]] || ((POS_NUM < 1 || POS_NUM > 8)); do
+        echo "Invalid selection. Enter a number between 1 and 8"
+        read -rp "Select position: " POS_NUM
+    done
+    POS="${POSITIONS[$((POS_NUM-1))]}"
     REL_POSITIONS["$MON"]="$POS"
+    echo "Selected: $POS"
 
     P_INFO=(${MONS_INFO[$PRIMARY_MON]})
     M_INFO=(${MONS_INFO[$MON]})
@@ -97,14 +107,14 @@ for MON in "${MONITORS[@]}"; do
     MW=${M_INFO[0]}; MH=${M_INFO[1]}
 
     case "$POS" in
-        top-left)       MON_X["$MON"]=0;               MON_Y["$MON"]=$(( -MH )) ;;
+        top-left)       MON_X["$MON"]=0;                  MON_Y["$MON"]=$(( -MH )) ;;
         top-center)     MON_X["$MON"]=$(( (PW - MW)/2 )); MON_Y["$MON"]=$(( -MH )) ;;
-        top-right)      MON_X["$MON"]=$(( PW - MW )); MON_Y["$MON"]=$(( -MH )) ;;
-        bottom-left)    MON_X["$MON"]=0;               MON_Y["$MON"]=$PH ;;
+        top-right)      MON_X["$MON"]=$(( PW - MW ));     MON_Y["$MON"]=$(( -MH )) ;;
+        bottom-left)    MON_X["$MON"]=0;                  MON_Y["$MON"]=$PH ;;
         bottom-center)  MON_X["$MON"]=$(( (PW - MW)/2 )); MON_Y["$MON"]=$PH ;;
-        bottom-right)   MON_X["$MON"]=$(( PW - MW )); MON_Y["$MON"]=$PH ;;
-        left-center)    MON_X["$MON"]=$(( -MW ));     MON_Y["$MON"]=$(( (PH - MH)/2 )) ;;
-        right-center)   MON_X["$MON"]=$PW;            MON_Y["$MON"]=$(( (PH - MH)/2 )) ;;
+        bottom-right)   MON_X["$MON"]=$(( PW - MW ));     MON_Y["$MON"]=$PH ;;
+        left-center)    MON_X["$MON"]=$(( -MW ));         MON_Y["$MON"]=$(( (PH - MH)/2 )) ;;
+        right-center)   MON_X["$MON"]=$PW;                MON_Y["$MON"]=$(( (PH - MH)/2 )) ;;
     esac
 done
 
@@ -178,3 +188,4 @@ echo "✅ Monitor section updated."
 # 8️⃣ Reload Hyprland
 hyprctl reload
 echo "🔁 Hyprland reloaded."
+```
