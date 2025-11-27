@@ -23,6 +23,7 @@ STATUS_WALLPAPER="pending"
 STATUS_CONFIG="pending"
 STATUS_GIT="pending"
 STATUS_DOTFILES="pending"
+STATUS_MONITOR="pending"
 
 # Function to print colored output
 print_status() {
@@ -383,6 +384,32 @@ else
     fi
 fi
 
+# Step 11: Configure Hyprland monitors
+print_status "Step 11: Configuring Hyprland monitors..."
+
+MONITOR_SCRIPT="$HOME/Scripts/setup_monitor.sh"
+
+if [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
+    print_warning "No display available for monitor configuration."
+    print_status "After reboot into Hyprland, run:"
+    echo ""
+    echo "  ~/Scripts/setup_monitor.sh"
+    echo ""
+    STATUS_MONITOR="pending (no display)"
+elif [ ! -f "$MONITOR_SCRIPT" ]; then
+    print_warning "$MONITOR_SCRIPT not found, skipping monitor configuration"
+    STATUS_MONITOR="skipped (script not found)"
+else
+    chmod +x "$MONITOR_SCRIPT"
+    if "$MONITOR_SCRIPT"; then
+        print_success "Monitor configuration complete"
+        STATUS_MONITOR="configured"
+    else
+        print_warning "Monitor setup encountered an issue"
+        STATUS_MONITOR="failed"
+    fi
+fi
+
 print_success "System setup complete!"
 echo
 print_status "Summary:"
@@ -396,5 +423,6 @@ echo "  • Wallpaper: $STATUS_WALLPAPER"
 echo "  • Config files: $STATUS_CONFIG"
 echo "  • Git: $STATUS_GIT"
 echo "  • Dotfile symlinks: $STATUS_DOTFILES"
+echo "  • Monitor config: $STATUS_MONITOR"
 echo
 print_warning "Please reboot your system for all changes to take effect."
