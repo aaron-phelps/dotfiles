@@ -13,6 +13,7 @@ efibootmgr
 fastfetch
 fish
 git
+github-cli
 grim
 gst-plugin-pipewire
 htop
