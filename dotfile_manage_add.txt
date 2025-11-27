@@ -9,7 +9,7 @@ waybar
 yazi
 
 # Home items
-/Scripts
+Scripts
 
 # System items
 /etc/sddm.conf

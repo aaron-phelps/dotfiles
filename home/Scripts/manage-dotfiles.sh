@@ -65,8 +65,10 @@ is_excluded() {
     return 1
 }
 
-# Normalize path: convert bare config names to .config/name
+# Normalize path: handle various input formats
 # System paths (starting with /) are returned as-is
+# Paths starting with ~/ are converted to relative home paths
+# Paths starting with .config/ or bare names like "waybar" become .config items
 normalize_path() {
     local input_path="$1"
 
@@ -76,11 +78,37 @@ normalize_path() {
         return
     fi
 
-    # If path doesn't contain / and doesn't start with ., assume it's a .config item
-    if [[ ! "$input_path" =~ / ]] && [[ ! "$input_path" =~ ^\. ]]; then
-        echo ".config/$input_path"
-    else
+    # Strip ~/ prefix if present (home-relative path)
+    if [[ "$input_path" =~ ^~/ ]]; then
+        input_path="${input_path#~/}"
         echo "$input_path"
+        return
+    fi
+
+    # Strip ./ prefix if present
+    if [[ "$input_path" =~ ^\.\/ ]]; then
+        input_path="${input_path#./}"
+        echo "$input_path"
+        return
+    fi
+
+    # If it starts with . (like .bashrc, .config, .local), it's home-relative
+    if [[ "$input_path" =~ ^\. ]]; then
+        echo "$input_path"
+        return
+    fi
+
+    # If it contains a / (like Documents/notes), it's home-relative
+    if [[ "$input_path" =~ / ]]; then
+        echo "$input_path"
+        return
+    fi
+
+    # Bare name without / - check if it exists in home first, otherwise assume .config
+    if [ -e "$HOME/$input_path" ]; then
+        echo "$input_path"
+    else
+        echo ".config/$input_path"
     fi
 }
 
