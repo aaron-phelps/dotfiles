@@ -195,14 +195,52 @@ else
     print_success "No AUR packages to remove"
 fi
 
-# Step 5: Create directories
-print_status "Step 5: Creating directories..."
+# Step 5: Configure SDDM
+print_status "Step 5: Configuring SDDM display manager..."
+if command -v sddm &> /dev/null; then
+    # Disable other display managers if present
+    for dm in gdm lightdm lxdm xdm ly; do
+        if systemctl is-enabled "${dm}.service" &> /dev/null; then
+            print_warning "Disabling ${dm}..."
+            sudo systemctl disable "${dm}.service"
+        fi
+    done
+
+    # Create SDDM configuration
+    print_status "Writing SDDM configuration..."
+    sudo tee /etc/sddm.conf > /dev/null << 'EOF'
+[General]
+Numlock=on
+
+[Theme]
+Current=
+
+[Users]
+MaximumUid=60513
+MinimumUid=1000
+
+[Wayland]
+SessionDir=/usr/share/wayland-sessions
+
+[X11]
+SessionDir=/usr/share/xsessions
+EOF
+
+    # Enable SDDM
+    sudo systemctl enable sddm.service
+    print_success "SDDM configured and enabled"
+else
+    print_warning "SDDM not installed, skipping display manager configuration"
+fi
+
+# Step 6: Create directories
+print_status "Step 6: Creating directories..."
 mkdir -p ~/Pictures/Wallpapers
 mkdir -p ~/Videos/Recordings
 print_success "Directories created: ~/Pictures/Wallpapers and ~/Videos/Recordings"
 
-# Step 6: Move wallpaper
-print_status "Step 6: Moving default wallpaper..."
+# Step 7: Move wallpaper
+print_status "Step 7: Moving default wallpaper..."
 if [ -f ~/dotfiles/wallpaper_default.jpg ]; then
     cp -f ~/dotfiles/wallpaper_default.jpg ~/Pictures/Wallpapers/
     print_success "Wallpaper copied to ~/Pictures/Wallpapers/"
@@ -210,8 +248,8 @@ else
     print_warning "Wallpaper file ~/dotfiles/wallpaper_default.jpg not found"
 fi
 
-# Step 7: Copy config files
-print_status "Step 7: Copying config files from ~/dotfiles/config/ to ~/.config/..."
+# Step 8: Copy config files
+print_status "Step 8: Copying config files from ~/dotfiles/config/ to ~/.config/..."
 if [ ! -d ~/dotfiles/config ]; then
     print_warning "Directory ~/dotfiles/config/ not found, skipping config deployment"
 else
@@ -243,6 +281,7 @@ echo "  • yay AUR helper: installed"
 echo "  • multilib repository: enabled"
 echo "  • Official packages: synchronized"
 echo "  • AUR packages: synchronized"
+echo "  • SDDM: configured and enabled"
 echo "  • Directories: created"
 echo "  • Wallpaper: moved"
 echo "  • Config files: deployed"
