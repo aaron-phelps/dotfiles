@@ -206,25 +206,13 @@ if command -v sddm &> /dev/null; then
         fi
     done
 
-    # Create SDDM configuration
-    print_status "Writing SDDM configuration..."
-    sudo tee /etc/sddm.conf > /dev/null << 'EOF'
-[General]
-Numlock=on
-
-[Theme]
-Current=
-
-[Users]
-MaximumUid=60513
-MinimumUid=1000
-
-[Wayland]
-SessionDir=/usr/share/wayland-sessions
-
-[X11]
-SessionDir=/usr/share/xsessions
-EOF
+    # Copy SDDM configuration from dotfiles
+    if [ -f ~/dotfiles/etc/sddm.conf ]; then
+        print_status "Copying SDDM configuration from dotfiles..."
+        sudo cp ~/dotfiles/etc/sddm.conf /etc/sddm.conf
+    else
+        print_warning "~/dotfiles/etc/sddm.conf not found, skipping SDDM config"
+    fi
 
     # Enable SDDM
     sudo systemctl enable sddm.service
@@ -274,6 +262,34 @@ print_status "Performing final cleanup..."
 sudo pacman -Sc --noconfirm
 yay -Sc --noconfirm
 
+# Step 9: Create dotfile symlinks
+print_status "Step 9: Creating dotfile symlinks from ~/dotfiles/dotfile_manage_add.txt..."
+DOTFILE_LIST="$HOME/dotfiles/dotfile_manage_add.txt"
+DOTFILE_MANAGE="$HOME/dotfiles/dotfile_manage.sh"
+
+if [ ! -f "$DOTFILE_LIST" ]; then
+    print_warning "File $DOTFILE_LIST not found, skipping dotfile linking"
+elif [ ! -f "$DOTFILE_MANAGE" ]; then
+    print_warning "File $DOTFILE_MANAGE not found, skipping dotfile linking"
+else
+    # Ensure manage script is executable
+    chmod +x "$DOTFILE_MANAGE"
+
+    # Read items and add each one
+    mapfile -t DOTFILE_ITEMS < <(grep -v '^#' "$DOTFILE_LIST" | grep -v '^$')
+
+    if [ ${#DOTFILE_ITEMS[@]} -gt 0 ]; then
+        print_status "Linking ${#DOTFILE_ITEMS[@]} dotfile items..."
+        for item in "${DOTFILE_ITEMS[@]}"; do
+            print_status "  Adding: $item"
+            "$DOTFILE_MANAGE" add "$item" || print_warning "Failed to add $item"
+        done
+        print_success "Dotfile linking complete"
+    else
+        print_warning "No items found in $DOTFILE_LIST"
+    fi
+fi
+
 print_success "System setup complete!"
 echo
 print_status "Summary:"
@@ -285,5 +301,6 @@ echo "  • SDDM: configured and enabled"
 echo "  • Directories: created"
 echo "  • Wallpaper: moved"
 echo "  • Config files: deployed"
+echo "  • Dotfile symlinks: created"
 echo
 print_warning "Please reboot your system for all changes to take effect."

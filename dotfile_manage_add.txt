@@ -1,0 +1,13 @@
+# Config items
+cava
+fastfetch
+fish
+hypr
+kitty
+rofi
+waybar
+yazi
+
+# Home items
+.gitignore
+Scripts
