@@ -303,8 +303,8 @@ yay -Sc --noconfirm
 # Step 9: Configure Git
 print_status "Step 9: Configuring Git..."
 
-SETUP_GIT="$HOME/Scripts/setup_git.sh"
-DOTFILE_MANAGE="$HOME/Scripts/dotfile_manage.sh"
+SETUP_GIT="$HOME/Scripts/setup-git.sh"
+DOTFILE_MANAGE="$HOME/Scripts/manage-dotfiles.sh"
 GIT_SETUP_SUCCESS=false
 
 if [ ! -f "$SETUP_GIT" ]; then
@@ -326,7 +326,7 @@ else
     print_warning "No display available for Git authentication."
     print_status "After reboot with a display, run:"
     echo ""
-    echo "  ~/Scripts/setup_git.sh"
+    echo "  ~/Scripts/setup-git.sh"
     echo ""
     print_status "This will complete both Git setup and dotfile linking."
     STATUS_GIT="pending (no display)"
@@ -335,6 +335,7 @@ fi
 # Step 10: Create dotfile symlinks
 print_status "Step 10: Creating dotfile symlinks from ~/dotfiles/dotfile_manage_add.txt..."
 DOTFILE_LIST="$HOME/dotfiles/dotfile_manage_add.txt"
+$DOTFILE_MANAGE=
 
 if [ ! -f "$DOTFILE_LIST" ]; then
     print_warning "File $DOTFILE_LIST not found, skipping dotfile linking"
@@ -375,7 +376,7 @@ else
             STATUS_DOTFILES="partial ($DOTFILE_SUCCESS linked, $DOTFILE_FAILED failed)"
             print_warning "To retry failed items, run:"
             for failed_item in "${FAILED_ITEMS[@]}"; do
-                echo "  ~/Scripts/dotfile_manage.sh add \"$failed_item\""
+                echo "  ~/Scripts/manage-dotfiles.sh add \"$failed_item\""
             done
         fi
     else
@@ -393,7 +394,7 @@ if [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
     print_warning "No display available for monitor configuration."
     print_status "After reboot into Hyprland, run:"
     echo ""
-    echo "  ~/Scripts/setup_monitor.sh"
+    echo "  ~/Scripts/update-hyprland-monitors.sh"
     echo ""
     STATUS_MONITOR="pending (no display)"
 elif [ ! -f "$MONITOR_SCRIPT" ]; then
