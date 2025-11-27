@@ -309,12 +309,21 @@ else
     mkdir -p ~/.config
 
     # Copy all contents from dotfiles/config to .config
-    # Using rsync with exclude file if it exists
     if [ "$(ls -A ~/dotfiles/config)" ]; then
         EXCLUDE_FILE="$HOME/dotfiles/dotfile_exclude.txt"
         if [ -f "$EXCLUDE_FILE" ]; then
-            # Convert .config/path patterns to just path for rsync
-            rsync -a --exclude-from=<(grep -v '^#' "$EXCLUDE_FILE" | grep -v '^$' | sed 's|^\.config/||') ~/dotfiles/config/ ~/.config/
+            # Build rsync exclude patterns for .config items
+            # Patterns like .config/hypr/organized/monitor.* become hypr/organized/monitor.*
+            rsync_excludes=()
+            while IFS= read -r pattern || [ -n "$pattern" ]; do
+                [[ "$pattern" =~ ^#.*$ || -z "$pattern" ]] && continue
+                # Only process .config patterns
+                if [[ "$pattern" == .config/* ]]; then
+                    relative_pattern="${pattern#.config/}"
+                    rsync_excludes+=("--exclude=$relative_pattern")
+                fi
+            done < "$EXCLUDE_FILE"
+            rsync -a "${rsync_excludes[@]}" ~/dotfiles/config/ ~/.config/
         else
             rsync -a ~/dotfiles/config/ ~/.config/
         fi
