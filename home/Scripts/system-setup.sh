@@ -220,6 +220,7 @@ if [ ${#AUR_TO_REMOVE[@]} -gt 0 ]; then
 else
     print_success "No AUR packages to remove"
 fi
+
 # Step 5: Configure SDDM
 print_status "Step 5: Configuring SDDM display manager..."
 if command -v sddm &> /dev/null; then
@@ -232,11 +233,14 @@ if command -v sddm &> /dev/null; then
     done
 
     # Copy SDDM configuration from dotfiles
-    if [ -f ~/dotfiles/etc/sddm.conf ]; then
+    if [ -f ~/dotfiles/system/etc/sddm.conf ]; then
+        print_status "Copying SDDM configuration from dotfiles..."
+        sudo cp ~/dotfiles/system/etc/sddm.conf /etc/sddm.conf
+    elif [ -f ~/dotfiles/etc/sddm.conf ]; then
         print_status "Copying SDDM configuration from dotfiles..."
         sudo cp ~/dotfiles/etc/sddm.conf /etc/sddm.conf
     else
-        print_warning "~/dotfiles/etc/sddm.conf not found, skipping SDDM config"
+        print_warning "SDDM config not found in dotfiles, skipping"
     fi
 
     # Copy SDDM theme from dotfiles if present
@@ -358,7 +362,7 @@ else
     echo ""
     echo "  ~/Scripts/setup-git.sh"
     echo ""
-    print_status "This will complete both Git setup and dotfile linking."
+    print_status "This will complete Git setup, dotfile linking, and monitor configuration."
     STATUS_GIT="pending (no display)"
 fi
 
@@ -374,8 +378,8 @@ elif [ ! -f "$DOTFILE_MANAGE" ]; then
     STATUS_DOTFILES="skipped (script not found)"
 elif [ "$GIT_SETUP_SUCCESS" = false ] && [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
     # Git setup didn't run due to no display, skip dotfile linking too (setup_git.sh will handle it)
-    print_warning "Skipping dotfile linking (will run via setup_git.sh after reboot)"
-    STATUS_DOTFILES="pending (via setup_git.sh)"
+    print_warning "Skipping dotfile linking (will run via setup-git.sh after reboot)"
+    STATUS_DOTFILES="pending (via setup-git.sh)"
 else
     # Ensure manage script is executable
     chmod +x "$DOTFILE_MANAGE"
@@ -419,7 +423,11 @@ print_status "Step 11: Configuring Hyprland monitors..."
 
 MONITOR_SCRIPT="$HOME/Scripts/update-hyprland-monitors.sh"
 
-if [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
+# Skip monitor config if git setup failed/pending - setup-git.sh will handle it
+if [ "$GIT_SETUP_SUCCESS" = false ] && [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
+    print_warning "Skipping monitor configuration (will run via setup-git.sh after reboot)"
+    STATUS_MONITOR="pending (via setup-git.sh)"
+elif [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
     print_warning "No display available for monitor configuration."
     print_status "After reboot into Hyprland, run:"
     echo ""
