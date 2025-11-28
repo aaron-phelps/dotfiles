@@ -5,19 +5,19 @@ options="󰌾  Lock\n⏻  Shutdown\n  Reboot\n󰤄  Suspend\n󰗼  Logout"
 chosen=$(echo -e "$options" | rofi -dmenu -p "" -theme ~/.config/rofi/powermenu.rasi)
 
 case $chosen in
-    "󰌾 Lock")
+    "󰌾  Lock")
         hyprlock
         ;;
-    "⏻ Shutdown")
+    "⏻  Shutdown")
         systemctl poweroff
         ;;
-    " Reboot")
+    "  Reboot")
         systemctl reboot
         ;;
-    "󰤄 Suspend")
+    "󰤄  Suspend")
         systemctl suspend
         ;;
-    "󰗼 Logout")
+    "󰗼  Logout")
         hyprctl dispatch exit
         ;;
 esac
