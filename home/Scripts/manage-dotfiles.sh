@@ -144,6 +144,26 @@ get_source_path() {
     fi
 }
 
+# Auto-push changes to GitHub
+auto_push() {
+    cd "$DOTFILES_DIR"
+
+    # Stage any unstaged changes
+    git add -A
+
+    # Check if there are changes to commit
+    if ! git diff --cached --quiet; then
+        git commit -m "Update dotfiles" || true
+    fi
+
+    # Push if there are commits ahead of remote
+    if git status | grep -q "Your branch is ahead"; then
+        echo -e "${GREEN}Pushing to GitHub...${NC}"
+        git push
+        echo -e "${GREEN}✓ Pushed to GitHub${NC}"
+    fi
+}
+
 list_tracked() {
     echo -e "${GREEN}Currently tracked items:${NC}"
     echo ""
@@ -300,9 +320,6 @@ add_item() {
     echo -e "${GREEN}✓ Successfully added $normalized_path${NC}"
     echo "  Source: $source_path"
     echo "  Repo:   $repo_path"
-    echo ""
-    echo "To push to GitHub, run:"
-    echo "  cd $DOTFILES_DIR && git push"
 
     return 0
 }
@@ -355,9 +372,6 @@ remove_item() {
     git -C "$DOTFILES_DIR" commit -m "Remove $normalized_path from tracking" || true
 
     echo -e "${GREEN}✓ Successfully removed $normalized_path${NC}"
-    echo ""
-    echo "To push to GitHub, run:"
-    echo "  cd $DOTFILES_DIR && git push"
 
     return 0
 }
@@ -399,9 +413,11 @@ sync_changes() {
 case "$1" in
     add)
         add_item "$2"
+        auto_push
         ;;
     remove)
         remove_item "$2"
+        auto_push
         ;;
     list)
         list_tracked
