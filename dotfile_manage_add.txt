@@ -10,6 +10,7 @@ yazi
 
 # Home items
 Scripts
+.config/dconf/blueman.ini
 
 # System items
 /etc/sddm.conf
