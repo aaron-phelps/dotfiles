@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
-HYPRCONF="$HOME/.config/hypr/organized/monitor.conf"
-BACKUP="$HOME/.config/hypr/organized/monitor.conf.bkp"
+HYPRCONF="$HOME/.config/monitor.conf"
+BACKUP="$HOME/.config/monitor.conf.bkp"
 
 # 0️⃣ Ensure config directory and file exist
 mkdir -p "$(dirname "$HYPRCONF")"
