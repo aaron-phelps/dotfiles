@@ -10,12 +10,13 @@ RED=$(printf '\033[0;31m')
 NC=$(printf '\033[0m')
 
 usage() {
-    echo "Usage: $0 {add|remove|list} [path]"
+    echo "Usage: $0 {add|remove|list|sync} [path]"
     echo ""
     echo "Commands:"
     echo "  add <path>       Add a file/folder to tracking (creates symlink)"
     echo "  remove <path>    Remove from tracking (restores backup)"
-    echo "  list            List currently tracked items"
+    echo "  list             List currently tracked items"
+    echo "  sync             Sync all changes and optionally push to GitHub"
     echo ""
     echo "Path can be:"
     echo "  - Relative to home: Scripts, .bashrc, Documents/notes"
@@ -31,6 +32,7 @@ usage() {
     echo "  $0 add /etc/sddm.conf      # System file (requires sudo)"
     echo "  $0 remove Scripts"
     echo "  $0 list"
+    echo "  $0 sync"
     echo ""
     echo "Exclusions defined in: ~/dotfiles/dotfile_exclude.txt"
     exit 1
@@ -260,8 +262,6 @@ add_item() {
         # Directory copy with exclusion support
         if [ -f "$EXCLUDE_FILE" ]; then
             # Build rsync exclude patterns relative to the source being copied
-            # e.g., if copying .config/hypr and pattern is .config/hypr/organized/monitor.*
-            # we need to pass organized/monitor.* to rsync
             local rsync_excludes=()
             while IFS= read -r pattern || [ -n "$pattern" ]; do
                 [[ "$pattern" =~ ^#.*$ || -z "$pattern" ]] && continue
@@ -362,6 +362,39 @@ remove_item() {
     return 0
 }
 
+# Sync all changes in tracked directories to git
+sync_changes() {
+    echo -e "${GREEN}Syncing all changes to git...${NC}"
+
+    cd "$DOTFILES_DIR"
+
+    # Stage all changes
+    git add -A
+
+    # Check if there are changes to commit
+    if git diff --cached --quiet; then
+        echo -e "${YELLOW}No changes to commit${NC}"
+    else
+        echo -e "${YELLOW}Uncommitted changes:${NC}"
+        git status --short
+        echo ""
+        read -p "Commit these changes? [y/N] " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            read -p "Commit message (or enter for default): " msg
+            msg="${msg:-Update dotfiles}"
+            git commit -m "$msg"
+
+            read -p "Push to GitHub? [y/N] " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                git push
+                echo -e "${GREEN}✓ Pushed to GitHub${NC}"
+            fi
+        fi
+    fi
+}
+
 # Main script logic
 case "$1" in
     add)
@@ -372,6 +405,9 @@ case "$1" in
         ;;
     list)
         list_tracked
+        ;;
+    sync)
+        sync_changes
         ;;
     *)
         usage
