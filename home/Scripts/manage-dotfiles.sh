@@ -9,14 +9,26 @@ YELLOW=$(printf '\033[1;33m')
 RED=$(printf '\033[0;31m')
 NC=$(printf '\033[0m')
 
+# Check for --no-push flag
+NO_PUSH=false
+for arg in "$@"; do
+    if [ "$arg" = "--no-push" ]; then
+        NO_PUSH=true
+        break
+    fi
+done
+
 usage() {
-    echo "Usage: $0 {add|remove|list|sync} [path]"
+    echo "Usage: $0 {add|remove|list|sync} [path] [--no-push]"
     echo ""
     echo "Commands:"
     echo "  add <path>       Add a file/folder to tracking (creates symlink)"
     echo "  remove <path>    Remove from tracking (restores backup)"
     echo "  list             List currently tracked items"
     echo "  sync             Sync all changes and optionally push to GitHub"
+    echo ""
+    echo "Options:"
+    echo "  --no-push        Skip automatic push to GitHub"
     echo ""
     echo "Path can be:"
     echo "  - Relative to home: Scripts, .bashrc, Documents/notes"
@@ -30,6 +42,7 @@ usage() {
     echo "  $0 add .config/fish"
     echo "  $0 add Documents/notes"
     echo "  $0 add /etc/sddm.conf      # System file (requires sudo)"
+    echo "  $0 add waybar --no-push    # Add without pushing"
     echo "  $0 remove Scripts"
     echo "  $0 list"
     echo "  $0 sync"
@@ -146,6 +159,10 @@ get_source_path() {
 
 # Auto-push changes to GitHub
 auto_push() {
+    if [ "$NO_PUSH" = true ]; then
+        return 0
+    fi
+
     cd "$DOTFILES_DIR"
 
     # Stage any unstaged changes
