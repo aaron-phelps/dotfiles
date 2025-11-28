@@ -45,6 +45,7 @@ rsync
 sddm
 slurp
 smartmontools
+sof-firmware
 steam
 swaync
 swww
