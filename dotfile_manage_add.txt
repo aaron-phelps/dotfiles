@@ -9,11 +9,11 @@ waybar
 yazi
 
 #Specific items
-~/.config/zed/settings.json
+.config/zed/settings.json
 
 # Home items
 Scripts
-~/.config/dconf/blueman.ini
+.config/dconf/blueman.ini
 
 # System items
 /etc/sddm.conf
