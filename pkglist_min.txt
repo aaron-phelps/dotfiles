@@ -50,7 +50,6 @@ swaync
 swww
 thunderbird
 udiskie
-uwsm
 vim
 vulkan-intel
 vulkan-radeon
