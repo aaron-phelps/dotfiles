@@ -37,13 +37,13 @@ fi
 # Configure credential helper
 git config --global credential.helper "!gh auth git-credential"
 
-# Set user info if missing
-if ! git config --global user.name &> /dev/null; then
+# Set user info if missing or empty
+if [ -z "$(git config --global user.name)" ]; then
     read -p "Enter your Git name: " GIT_USERNAME
     git config --global user.name "$GIT_USERNAME"
 fi
 
-if ! git config --global user.email &> /dev/null; then
+if [ -z "$(git config --global user.email)" ]; then
     read -p "Enter your Git email: " GIT_EMAIL
     git config --global user.email "$GIT_EMAIL"
 fi
