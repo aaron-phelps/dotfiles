@@ -188,4 +188,3 @@ echo "✅ Monitor section updated."
 # 8️⃣ Reload Hyprland
 hyprctl reload
 echo "🔁 Hyprland reloaded."
-```
