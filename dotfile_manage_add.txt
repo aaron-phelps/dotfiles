@@ -13,3 +13,4 @@ Scripts
 
 # System items
 /etc/sddm.conf
+/etc/bluetooth/main.conf
