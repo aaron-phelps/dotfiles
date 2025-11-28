@@ -53,6 +53,10 @@ sudo chattr -R -i ~/Scripts/ 2>/dev/null || true
 sudo chown -R $USER:$USER ~/Scripts/
 chmod -R +x ~/Scripts/
 
+#Make sure bluetooth is enabled and unblocked
+sudo systemctl enable --now bluetooth.service
+sudo rfkill unblock bluetooth
+
 # Step 0: Install yay if not present
 print_status "Step 0: Checking for yay AUR helper..."
 if ! command -v yay &> /dev/null; then
