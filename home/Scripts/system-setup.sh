@@ -294,14 +294,9 @@ STATUS_DIRECTORIES="created"
 
 # Step 7: Move wallpaper
 print_status "Step 7: Moving default wallpaper..."
-if [ -f ~/dotfiles/wallpaper_default.jpg ]; then
-    cp -f ~/dotfiles/wallpaper_default.jpg ~/Pictures/Wallpapers/
-    print_success "Wallpaper copied to ~/Pictures/Wallpapers/"
-    STATUS_WALLPAPER="copied"
-else
-    print_warning "Wallpaper file ~/dotfiles/wallpaper_default.jpg not found"
-    STATUS_WALLPAPER="skipped (not found)"
-fi
+cp -f -r ~/dotfiles/Wallpapers/ ~/Pictures/Wallpapers/
+print_success "Wallpapers copied to ~/Pictures/Wallpapers/"
+STATUS_WALLPAPER="copied"
 
 # Step 8: Copy config files
 print_status "Step 8: Copying config files from ~/dotfiles/config/ to ~/.config/..."
