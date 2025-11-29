@@ -7,6 +7,7 @@ kitty
 rofi
 waybar
 yazi
+zed
 
 #Specific items
 .config/zed/settings.json
