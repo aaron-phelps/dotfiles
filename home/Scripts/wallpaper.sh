@@ -2,12 +2,6 @@
 
 WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
 
-# Initialize swww if not running
-if ! pgrep -x swww-daemon > /dev/null; then
-    swww-daemon &
-    sleep 0.5
-fi
-
 # Get random wallpaper (including GIFs and videos)
 WALLPAPER=$(find "$WALLPAPER_DIR" -type f \( \
     -iname "*.jpg" -o -iname "*.png" -o -iname "*.jpeg" \
@@ -17,13 +11,20 @@ WALLPAPER=$(find "$WALLPAPER_DIR" -type f \( \
 if [ -n "$WALLPAPER" ]; then
     # Check if it's a video file
     if [[ "$WALLPAPER" =~ \.(mp4|webm|mkv|avi)$ ]]; then
-        # Kill existing mpvpaper instances
+        # Kill existing wallpaper processes
         pkill mpvpaper
-        # Use mpvpaper for videos
-        mpvpaper -o "no-audio loop" '*' "$WALLPAPER" &
+        pkill swww-daemon
+        sleep 0.3
+        # Use mpvpaper for videos with proper scaling
+        mpvpaper -o "no-audio loop panscan=1.0" '*' "$WALLPAPER" &
     else
         # Kill mpvpaper if running (switching from video to static)
         pkill mpvpaper
+        # Initialize swww if not running
+        if ! pgrep -x swww-daemon > /dev/null; then
+            swww-daemon &
+            sleep 0.5
+        fi
         # Use swww for images/GIFs
         swww img "$WALLPAPER" --transition-type fade --transition-duration 1
     fi
