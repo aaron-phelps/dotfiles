@@ -2,6 +2,7 @@
 cava
 fastfetch
 fish
+gtk-3.0
 hypr
 kitty
 rofi
