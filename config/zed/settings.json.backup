@@ -13,7 +13,6 @@
   "buffer_font_size": 15,
   "theme": {
     "mode": "dark",
-    "light": "Gruvbox Light",
     "dark": "VSCode Dark Modern"
   },
   "restore_on_startup": "last_session"
