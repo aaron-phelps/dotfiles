@@ -11,10 +11,7 @@
   "icon_theme": "Zed (Default)",
   "ui_font_size": 16,
   "buffer_font_size": 15,
-  "theme": {
-    "mode": "dark",
-    "dark": "VSCode Dark Modern"
-  },
+  "theme": "VSCode Dark Modern",
   "restore_on_startup": "last_session"
 }
 
@@ -26,14 +23,3 @@
 // To see all of Zed's default settings without changing your
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
-{
-  "base_keymap": "JetBrains",
-  "icon_theme": "Zed (Default)",
-  "ui_font_size": 16,
-  "buffer_font_size": 15,
-  "theme": {
-    "mode": "dark",
-    "dark": "VSCode Dark Modern"
-  },
-  "restore_on_startup": "last_session"
-}
