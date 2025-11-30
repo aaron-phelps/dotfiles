@@ -50,6 +50,8 @@ steam
 swaync
 swww
 thunderbird
+tlp
+tlp-rdw
 udiskie
 vim
 vulkan-intel
