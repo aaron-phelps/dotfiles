@@ -226,8 +226,8 @@ else
 fi
 
 # Step 4.5 - enable hyprland plugin
-hyprpm add https://github.com/CerBor/hyprexpo-plus -v
-hyprpm enable hyprexpo-plus
+# hyprpm add https://github.com/CerBor/hyprexpo-plus -v
+# hyprpm enable hyprexpo-plus
 
 # Step 5: Configure SDDM
 print_status "Step 5: Configuring SDDM display manager..."
