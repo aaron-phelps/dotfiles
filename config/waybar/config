@@ -49,7 +49,6 @@
     "custom/network",
     "custom/separator",
     "custom/notification",
-    "custom/separator",
     "custom/power"
   ],
 
@@ -233,7 +232,7 @@
 
   "custom/notification": {
     "tooltip": false,
-    "format": "{0} {icon} ",
+    "format": " {0} {icon} ",
     "format-icons": {
       "notification": "󰂞",
       "none": "",
