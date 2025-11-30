@@ -225,6 +225,10 @@ else
     print_success "No AUR packages to remove"
 fi
 
+# Step 4.5 - enable hyprland plugin
+hyprpm add https://github.com/CerBor/hyprexpo-plus -v
+hyprpm enable hyprexpo-plus
+
 # Step 5: Configure SDDM
 print_status "Step 5: Configuring SDDM display manager..."
 if command -v sddm &> /dev/null; then
