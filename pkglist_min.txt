@@ -57,6 +57,7 @@ vim
 vulkan-intel
 vulkan-radeon
 waybar
+wev
 wf-recorder
 wget
 wireless_tools
