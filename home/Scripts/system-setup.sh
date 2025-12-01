@@ -299,7 +299,7 @@ STATUS_DIRECTORIES="created"
 
 # Step 7: Move wallpaper
 print_status "Step 7: Moving default wallpaper..."
-cp -f -r ~/dotfiles/Wallpapers/ ~/Pictures/Wallpapers/
+cp -f -r ~/dotfiles/Wallpapers/* ~/Pictures/Wallpapers/
 print_success "Wallpapers copied to ~/Pictures/Wallpapers/"
 STATUS_WALLPAPER="copied"
 
