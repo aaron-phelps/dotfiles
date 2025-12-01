@@ -226,6 +226,7 @@ else
 fi
 
 # Step 4.5 - enable hyprland plugin
+# hyprpm update
 # hyprpm add https://github.com/CerBor/hyprexpo-plus -v
 # hyprpm enable hyprexpo-plus
 
