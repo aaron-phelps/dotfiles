@@ -1,0 +1,21 @@
+[pyprland]
+plugins = [
+    "scratchpads",
+    "magnify",
+    "expose",
+    "lost_windows",
+]
+
+[scratchpads.term]
+animation = "fromTop"
+command = "kitty --class kitty-dropterm"
+class = "kitty-dropterm"
+size = "75% 60%"
+
+[scratchpads.volume]
+animation = "fromRight"
+command = "pavucontrol"
+class = "org.pulseaudio.pavucontrol"
+lazy = true
+size = "40% 90%"
+unfocus = "hide"
