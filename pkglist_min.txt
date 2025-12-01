@@ -34,6 +34,7 @@ meson
 mpv
 nano
 noto-fonts-emoji
+nwg-displays
 openssh
 pipewire
 pipewire-alsa
