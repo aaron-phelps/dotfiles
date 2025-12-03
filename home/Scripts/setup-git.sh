@@ -132,6 +132,13 @@ else
     fi
 fi
 
+# Enable hyprland plugin
+hyprpm update
+hyprpm add https://github.com/CerBor/hyprexpo-plus -v
+hyprpm enable hyprexpo-plus
+hyprpm add https://github.com/hyprwm/hyprland-plugins -v
+hyprpm enable hyprscrolling
+
 # --- Monitor configuration ---
 print_status "Configuring Hyprland monitors..."
 
