@@ -1,6 +1,5 @@
 balena-etcher
 mpvpaper
-pyprland
 sddm-sugar-dark
 ttf-google-sans-code-nf
 yay

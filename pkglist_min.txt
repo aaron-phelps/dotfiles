@@ -1,3 +1,4 @@
+7zip
 amd-ucode
 base
 base-devel
@@ -34,7 +35,6 @@ meson
 mpv
 nano
 noto-fonts-emoji
-nwg-displays
 openssh
 pipewire
 pipewire-alsa
