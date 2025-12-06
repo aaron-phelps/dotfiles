@@ -8,9 +8,17 @@
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
   "base_keymap": "JetBrains",
-  "icon_theme": "Zed (Default)",
+  "icon_theme": {
+    "mode": "dark",
+    "light": "Zed (Default)",
+    "dark": "Zed (Default)"
+  },
   "ui_font_size": 16,
   "buffer_font_size": 15,
-  "theme": "VSCode Dark Modern",
+  "theme": {
+    "mode": "dark",
+    "light": "VSCode Dark Modern",
+    "dark": "VSCode Dark Modern"
+  },
   "restore_on_startup": "last_session"
 }
