@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # Arch Linux Setup - Enable Bluetooth
 # Can be run standalone or called from setup-all.sh
 
@@ -7,9 +6,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/setup-common.sh"
-
 check_not_root
-
 print_status "Configuring Bluetooth..."
 
 # Enable and start bluetooth service
@@ -30,4 +27,9 @@ else
     print_warning "rfkill not found, skipping unblock"
 fi
 
+# Configure blueman - disable StatusNotifierItem plugin (use StatusIcon instead)
+if command_exists blueman-applet; then
+    gsettings set org.blueman.general plugin-list "['!StatusNotifierItem']"
+    print_success "Blueman configured (StatusNotifierItem disabled)"
+fi
 echo "enabled"
