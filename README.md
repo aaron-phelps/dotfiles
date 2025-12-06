@@ -27,7 +27,6 @@ sudo chmod +x system_setup.sh
 
 ./system-all.sh
 
-### Done! Enjoy! - this is base installation - Further steps show extra config
 ---
 ## 2. Post installtion script to run
 
@@ -39,4 +38,6 @@ cd Scripts/Setup
 
 Follow prompts in the terminal
 
-### Done! Enjoy! - this is base installation - feel free to customize the pkg lists or dotfiles to include/exclude
+### Done! Enjoy! - this is base installation - you can customize the pkg lists or dotfiles as needed
+
+---
