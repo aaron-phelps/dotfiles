@@ -1,4 +1,3 @@
-balena-etcher
 mpvpaper
 sddm-sugar-dark
 ttf-google-sans-code-nf
