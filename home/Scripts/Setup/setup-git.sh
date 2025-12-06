@@ -19,7 +19,6 @@ check_not_root
 declare -A MODULES=(
     [config]="Configure Git user settings and credential helper"
     [auth]="Authenticate with GitHub CLI"
-    [secrets]="Clone/update secrets repo and install credentials"
     [dotfiles]="Create dotfile symlinks"
     [plugins]="Install Hyprland plugins"
     [monitors]="Configure Hyprland monitors"
@@ -29,7 +28,6 @@ declare -A MODULES=(
 MODULE_ORDER=(
     config
     auth
-    secrets
     dotfiles
     plugins
     monitors
@@ -72,9 +70,6 @@ run_module() {
         auth)
             script="$SCRIPT_DIR/setup-gh-auth.sh"
             ;;
-        secrets)
-            script="$SCRIPT_DIR/setup-secrets.sh"
-            ;;
         dotfiles)
             script="$SCRIPT_DIR/setup-dotfiles.sh"
             ;;
@@ -96,14 +91,14 @@ run_module() {
         return 1
     fi
 
-    chmod +x "$script"
+    sudo chattr -i "$script" 2>/dev/null || true
+    sudo chmod +x "$script"
 
     print_status "Running module: $module"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-    local result
-    if result=$("$script" 2>&1 | tee /dev/stderr | tail -1); then
-        STATUS[$module]="$result"
+    if "$script"; then
+        STATUS[$module]="completed"
     else
         STATUS[$module]="failed"
     fi

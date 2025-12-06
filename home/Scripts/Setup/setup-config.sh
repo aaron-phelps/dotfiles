@@ -13,6 +13,7 @@ check_not_root
 CONFIG_SRC="$DOTFILES_DIR/config"
 CONFIG_DEST="$HOME/.config"
 EXCLUDE_FILE="$DOTFILES_DIR/dotfile_exclude.txt"
+DOTFILE_LIST="$DOTFILES_DIR/dotfile_manage_add.txt"
 
 print_status "Deploying config files from $CONFIG_SRC to $CONFIG_DEST..."
 
@@ -32,23 +33,34 @@ if [ -z "$(ls -A "$CONFIG_SRC" 2>/dev/null)" ]; then
     exit 0
 fi
 
-# Build rsync command with exclusions if exclude file exists
+# Build rsync exclusions
+rsync_excludes=()
+
+# Exclude items from dotfile_exclude.txt
 if [ -f "$EXCLUDE_FILE" ]; then
     print_status "Using exclusions from $EXCLUDE_FILE"
-    rsync_excludes=()
     while IFS= read -r pattern || [ -n "$pattern" ]; do
-        # Skip comments and empty lines
         [[ "$pattern" =~ ^#.*$ || -z "$pattern" ]] && continue
-        # Only process .config patterns
         if [[ "$pattern" == .config/* ]]; then
             relative_pattern="${pattern#.config/}"
             rsync_excludes+=("--exclude=$relative_pattern")
         fi
     done < "$EXCLUDE_FILE"
-    rsync -a "${rsync_excludes[@]}" "$CONFIG_SRC/" "$CONFIG_DEST/"
-else
-    rsync -a "$CONFIG_SRC/" "$CONFIG_DEST/"
 fi
+
+# Also exclude items that will be symlinked by manage-dotfiles
+if [ -f "$DOTFILE_LIST" ]; then
+    print_status "Excluding items managed as symlinks"
+    while IFS= read -r item || [ -n "$item" ]; do
+        [[ "$item" =~ ^#.*$ || -z "$item" ]] && continue
+        if [[ "$item" == .config/* ]]; then
+            relative_pattern="${item#.config/}"
+            rsync_excludes+=("--exclude=$relative_pattern")
+        fi
+    done < "$DOTFILE_LIST"
+fi
+
+rsync -a "${rsync_excludes[@]}" "$CONFIG_SRC/" "$CONFIG_DEST/"
 
 print_success "Config files copied to $CONFIG_DEST"
 

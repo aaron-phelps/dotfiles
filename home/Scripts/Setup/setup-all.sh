@@ -26,10 +26,9 @@ declare -A MODULES=(
     [sddm]="Configure SDDM display manager"
     [directories]="Create standard directories"
     [wallpapers]="Deploy wallpapers"
-    [config]="Deploy config files"
-    [git]="Configure Git, GitHub auth, secrets, and plugins"
-    [dotfiles]="Create dotfile symlinks"
-    [monitors]="Configure Hyprland monitors (requires display)"
+    [dotfiles]="Create dotfile symlinks (configs, home items, system files)"
+    [git]="Configure Git, GitHub auth, and plugins"
+    [monitors]="Configure Hyprland monitors"
 )
 
 # Order of execution
@@ -43,9 +42,8 @@ MODULE_ORDER=(
     sddm
     directories
     wallpapers
-    config
-    git
     dotfiles
+    git
     monitors
 )
 
@@ -97,7 +95,8 @@ run_module() {
         return 1
     fi
 
-    chmod +x "$script"
+    sudo chattr -i "$script" 2>/dev/null || true
+    sudo chmod +x "$script"
 
     # Check display requirements
     if [[ "$module" == "git" || "$module" == "monitors" ]]; then
@@ -111,9 +110,8 @@ run_module() {
     print_status "Running module: $module"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-    local result
-    if result=$("$script" "${extra_args[@]}" 2>&1 | tee /dev/stderr | tail -1); then
-        STATUS[$module]="$result"
+    if "$script" "${extra_args[@]}"; then
+        STATUS[$module]="completed"
     else
         STATUS[$module]="failed"
     fi
@@ -182,6 +180,10 @@ echo "╔═══════════════════════�
 echo "║     Arch Linux System Setup Script     ║"
 echo "╚════════════════════════════════════════╝"
 echo ""
+
+# Remove immutable attributes first (needed before we can chmod scripts)
+sudo chattr -R -i "$SCRIPTS_DIR" 2>/dev/null || true
+sudo chattr -R -i "$SCRIPTS_ROOT" 2>/dev/null || true
 
 # Run requested modules
 for module in "${MODULES_TO_RUN[@]}"; do

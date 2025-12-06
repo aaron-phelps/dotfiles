@@ -13,7 +13,6 @@ zed
 # Home items
 Scripts
 .config/dconf/blueman.ini
-.config/zed/settings.json
 
 # System items
 /etc/sddm.conf
