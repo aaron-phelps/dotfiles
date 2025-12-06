@@ -10,12 +10,10 @@ waybar
 yazi
 zed
 
-#Specific items
-.config/zed/settings.json
-
 # Home items
 Scripts
 .config/dconf/blueman.ini
+.config/zed/settings.json
 
 # System items
 /etc/sddm.conf

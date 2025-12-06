@@ -22,18 +22,6 @@ DOTFILE_MANAGE="$HOME/Scripts/manage-dotfiles.sh"
 DOTFILE_LIST="$HOME/dotfiles/dotfile_manage_add.txt"
 MONITOR_SCRIPT="$HOME/Scripts/update-hyprland-monitors.sh"
 
-# Check gh
-if ! command -v gh &> /dev/null; then
-    print_error "GitHub CLI (gh) not installed"
-    exit 1
-fi
-
-# Authenticate if needed
-if ! gh auth status &> /dev/null; then
-    print_status "Authenticating with GitHub..."
-    gh auth login --hostname github.com --git-protocol https --web
-fi
-
 # Configure credential helper
 git config --global credential.helper "!gh auth git-credential"
 
@@ -46,6 +34,18 @@ fi
 if [ -z "$(git config --global user.email)" ]; then
     read -p "Enter your Git email: " GIT_EMAIL
     git config --global user.email "$GIT_EMAIL"
+fi
+
+# Check gh
+if ! command -v gh &> /dev/null; then
+    print_error "GitHub CLI (gh) not installed"
+    exit 1
+fi
+
+# Authenticate if needed
+if ! gh auth status &> /dev/null; then
+    print_status "Authenticating with GitHub..."
+    gh auth login --hostname github.com --git-protocol https --web
 fi
 
 # Clone/update secrets and copy credentials
