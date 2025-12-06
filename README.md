@@ -38,3 +38,5 @@ cd Scripts/Setup
 ./setup-git.sh
 
 Follow prompts in the terminal
+
+### Done! Enjoy! - this is base installation - feel free to customize the pkg lists or dotfiles to include/exclude
