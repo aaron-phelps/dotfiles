@@ -1,6 +1,8 @@
 if status is-interactive
-    # Commands to run in interactive sessions can go here
+    # Disable welcome message
+    set -g fish_greeting
 end
+
 if test "$TERM" = "xterm-kitty"
     set -gx TERM xterm-256color
 end
