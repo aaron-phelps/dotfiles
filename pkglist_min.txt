@@ -1,5 +1,6 @@
 7zip
 amd-ucode
+awww
 base
 base-devel
 blueman
@@ -11,6 +12,8 @@ cliphist
 cmake
 cmatrix
 cpio
+cups
+cups-pk-helper
 discord
 efibootmgr
 fastfetch
@@ -24,6 +27,7 @@ hypridle
 hyprland
 hyprlock
 hyprpaper
+intel-ucode
 iw
 iwd
 jq
@@ -41,6 +45,7 @@ pipewire-alsa
 pipewire-jack
 pipewire-pulse
 polkit-gnome
+power-profiles-daemon
 pulsemixer
 qt5-wayland
 qt6-wayland
@@ -51,12 +56,14 @@ slurp
 smartmontools
 sof-firmware
 steam
+sudo
 swaync
-swww
+system-config-printer
 thunderbird
 tlp
 tlp-rdw
 udiskie
+ufw
 vim
 vulkan-intel
 vulkan-radeon
