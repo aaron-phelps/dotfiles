@@ -36,7 +36,6 @@ libpulse
 linux
 linux-firmware
 meson
-mpv
 nano
 noto-fonts-emoji
 openssh
@@ -51,7 +50,6 @@ qt5-wayland
 qt6-wayland
 rofi
 rsync
-sddm
 slurp
 smartmontools
 sof-firmware
@@ -76,10 +74,8 @@ wireplumber
 wl-clipboard
 wpa_supplicant
 xdg-desktop-portal-hyprland
-xdg-utils
 xf86-video-amdgpu
 xf86-video-ati
-xorg-server
 xorg-xinit
 yazi
 zed
