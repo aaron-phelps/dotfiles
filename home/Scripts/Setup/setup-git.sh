@@ -20,7 +20,6 @@ declare -A MODULES=(
     [config]="Configure Git user settings and credential helper"
     [auth]="Authenticate with GitHub CLI"
     [dotfiles]="Create dotfile symlinks"
-    [plugins]="Install Hyprland plugins"
     [monitors]="Configure Hyprland monitors"
 )
 
@@ -29,7 +28,6 @@ MODULE_ORDER=(
     config
     auth
     dotfiles
-    plugins
     monitors
 )
 
@@ -72,9 +70,6 @@ run_module() {
             ;;
         dotfiles)
             script="$SCRIPT_DIR/setup-dotfiles.sh"
-            ;;
-        plugins)
-            script="$SCRIPT_DIR/setup-hyprland-plugins.sh"
             ;;
         monitors)
             script="$SCRIPT_DIR/setup-monitors.sh"

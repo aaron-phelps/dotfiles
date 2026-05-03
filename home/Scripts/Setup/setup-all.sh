@@ -27,7 +27,7 @@ declare -A MODULES=(
     [directories]="Create standard directories"
     [wallpapers]="Deploy wallpapers"
     [dotfiles]="Create dotfile symlinks (configs, home items, system files)"
-    [git]="Configure Git, GitHub auth, and plugins"
+    [git]="Configure Git, GitHub auth, and dotfiles"
     [monitors]="Configure Hyprland monitors"
 )
 
