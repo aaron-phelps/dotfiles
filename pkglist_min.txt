@@ -1,5 +1,6 @@
 7zip
 amd-ucode
+android-tools
 awww
 base
 base-devel
@@ -60,6 +61,7 @@ system-config-printer
 thunderbird
 tlp
 tlp-rdw
+ttf-cascadia-code
 udiskie
 ufw
 vim

@@ -1,5 +1,6 @@
 mpvpaper
 sddm-sugar-dark
+unityhub
 yay
 yay-debug
 zen-browser-bin
