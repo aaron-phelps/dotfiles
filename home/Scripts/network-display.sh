@@ -14,7 +14,7 @@ STATE=$(cat "$STATE_FILE")
 DEVICE=$(ip route | grep default | awk '{print $5}' | head -1)
 
 if [ -z "$DEVICE" ]; then
-    echo '{"text": "󰖪  Disconnected", "class": "disconnected"}'
+    echo '{"text": "<span size='x-large'>󰖪</span><span rise='2500'>  Disconnected</span>", "class": "disconnected"}'
     exit 0
 fi
 
@@ -60,15 +60,15 @@ if [ -d "/sys/class/net/$DEVICE/wireless" ]; then
     case $STATE in
         0)
             # Show ESSID and signal
-            echo "{\"text\": \"󰖩   $ESSID ($SIGNAL%)\", \"tooltip\": \"$TOOLTIP\", \"class\": \"wifi\"}"
+            echo "{\"text\": \"<span size='x-large'>󰖩</span><span rise='2500'>   $ESSID ($SIGNAL%)</span>\", \"tooltip\": \"$TOOLTIP\", \"class\": \"wifi\"}"
             ;;
         1)
             # Show IP address
-            echo "{\"text\": \"󰖩   $IP\", \"tooltip\": \"$TOOLTIP\", \"class\": \"wifi\"}"
+            echo "{\"text\": \"<span size='x-large'>󰖩</span><span rise='2500'>   $IP</span>\", \"tooltip\": \"$TOOLTIP\", \"class\": \"wifi\"}"
             ;;
         2)
             # Show bandwidth
-            echo "{\"text\": \"  $RX_DISPLAY    $TX_DISPLAY\", \"tooltip\": \"$TOOLTIP\", \"class\": \"wifi\"}"
+            echo "{\"text\": \"<span size='x-large'></span><span rise='2500'>  $RX_DISPLAY  </span><span size='x-large'></span><span rise='2500'>  $TX_DISPLAY</span>\", \"tooltip\": \"$TOOLTIP\", \"class\": \"wifi\"}"
             ;;
     esac
 else
@@ -104,15 +104,15 @@ else
     case $STATE in
         0)
             # Show connection type
-            echo "{\"text\": \"󰈀 Connected\", \"tooltip\": \"$TOOLTIP\", \"class\": \"ethernet\"}"
+            echo "{\"text\": \"<span size='x-large'>󰈀</span><span rise='2500'> Connected</span>\", \"tooltip\": \"$TOOLTIP\", \"class\": \"ethernet\"}"
             ;;
         1)
             # Show IP address
-            echo "{\"text\": \"󰈀 $IP\", \"tooltip\": \"$TOOLTIP\", \"class\": \"ethernet\"}"
+            echo "{\"text\": \"<span size='x-large'>󰈀</span><span rise='2500'> $IP</span>\", \"tooltip\": \"$TOOLTIP\", \"class\": \"ethernet\"}"
             ;;
         2)
             # Show bandwidth
-            echo "{\"text\": \"  $RX_DISPLAY   $TX_DISPLAY\", \"tooltip\": \"$TOOLTIP\", \"class\": \"ethernet\"}"
+            echo "{\"text\": \"<span size='x-large'></span><span rise='2500'>  $RX_DISPLAY </span><span size='x-large'></span><span rise='2500'>  $TX_DISPLAY</span>\", \"tooltip\": \"$TOOLTIP\", \"class\": \"ethernet\"}"
             ;;
     esac
 fi
