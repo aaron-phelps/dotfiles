@@ -13,19 +13,19 @@ if [ -n "$WALLPAPER" ]; then
     if [[ "$WALLPAPER" =~ \.(mp4|webm|mkv|avi)$ ]]; then
         # Kill existing wallpaper processes
         pkill mpvpaper
-        pkill swww-daemon
+        pkill awww-daemon
         sleep 0.3
         # Use mpvpaper for videos with proper scaling
         mpvpaper -o "no-audio loop panscan=1.0" '*' "$WALLPAPER" &
     else
         # Kill mpvpaper if running (switching from video to static)
         pkill mpvpaper
-        # Initialize swww if not running
-        if ! pgrep -x swww-daemon > /dev/null; then
-            swww-daemon &
+        # Initialize awww if not running
+        if ! pgrep -x awww-daemon > /dev/null; then
+            awww-daemon &
             sleep 0.5
         fi
-        # Use swww for images/GIFs
-        swww img "$WALLPAPER" --transition-type fade --transition-duration 1
+        # Use awww for images/GIFs
+        awww img "$WALLPAPER" --transition-type fade --transition-duration 1
     fi
 fi
